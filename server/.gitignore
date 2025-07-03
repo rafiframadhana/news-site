@@ -1,0 +1,33 @@
+# Node modules
+node_modules/
+
+# Environment variables
+.env
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Dependency directories
+package-lock.json
+
+# Ignore test and temp files (if any)
+test-*.js
+temp/
+
+# Ignore Cloudinary config if it contains secrets (uncommon, but safe)
+# config/cloudinary.js
+
+# Ignore uploads if ever reintroduced
+uploads/
+
+# Ignore coverage reports
+coverage/
+
+# Ignore local environment example (keep .env.example tracked)
+!.env.example
