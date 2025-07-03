@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Set the base URL for all API requests
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 // Helper function to get auth token
 const getAuthToken = () => {
