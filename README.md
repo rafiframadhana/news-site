@@ -1,4 +1,4 @@
-# Atjeh Times News Site
+# Atjeh Times - A Full-Stack News Site
 
 A full-stack MERN (MongoDB, Express, React, Node.js) news website with a modern design, advanced features, and a serverless backend deployment option on Vercel.
 
