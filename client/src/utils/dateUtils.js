@@ -1,11 +1,12 @@
 import { format, formatDistanceToNow, parseISO } from 'date-fns';
 
 // Format date for display
-export const formatDate = (date, formatString = 'PPP') => {
+export const formatDate = (date, formatString = 'MMM dd, yyyy') => {
   if (!date) return '';
   const dateObj = typeof date === 'string' ? parseISO(date) : date;
   return format(dateObj, formatString);
 };
+
 
 // Format relative time (e.g., "2 hours ago")
 export const formatRelativeTime = (date) => {

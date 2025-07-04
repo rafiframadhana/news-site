@@ -8,6 +8,7 @@ import {
   FiPlus,
   FiSearch,
   FiFilter,
+  FiCalendar,
 } from "react-icons/fi";
 import { useAuth } from "../../context/AuthContext";
 import { articleService } from "../../services/articleService";
@@ -15,6 +16,7 @@ import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import { formatDate } from "date-fns";
 
 const AuthorArticlesList = () => {
   const { user } = useAuth();
@@ -187,10 +189,21 @@ const AuthorArticlesList = () => {
                       <FiEye className="w-3 h-3" />
                       {article.views || 0}
                     </span>
-                    <span>Category: {toCapitalCase(article.category)}</span>
-                    <span>
+                    <span className="flex items-center gap-1">
+                      Category:{" "}
+                      <span className="font-medium">
+                        {toCapitalCase(article.category)}
+                      </span>
+                    </span>
+                    <span className="flex items-center gap-2">
                       Updated:{" "}
-                      {new Date(article.updatedAt).toLocaleDateString()}
+                      <span className="gap-1 flex items-center font-medium">
+                        <FiCalendar className="w-3 h-3" />
+                        {formatDate(
+                          new Date(article.updatedAt),
+                          "MMM dd, yyyy"
+                        )}
+                      </span>
                     </span>
                   </div>
                 </div>

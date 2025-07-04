@@ -5,6 +5,7 @@ import { articleService } from "../../services/articleService";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import { formatDate } from "date-fns";
 
 const AuthorDashboard = () => {
   const { user } = useAuth();
@@ -203,9 +204,9 @@ const AuthorDashboard = () => {
                       <FiEye className="w-3 h-3" />
                       {article.views || 0}
                     </span>
-                    <span className="hidden sm:flex items-center gap-1">
-                      <FiCalendar className="w-3 h-3" /> 
-                      {new Date(article.updatedAt).toLocaleDateString()}
+                    <span className="hidden sm:flex items-center gap-1 font-medium">
+                      <FiCalendar className="w-3 h-3" />
+                      {formatDate(new Date(article.updatedAt), "MMM dd, yyyy")}
                     </span>
                   </div>
                 </div>

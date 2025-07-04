@@ -8,11 +8,13 @@ import {
   FiTrendingUp,
   FiPlus,
   FiEdit3,
+  FiCalendar,
 } from "react-icons/fi";
 import { userService } from "../../services/userService";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import { formatDate } from "date-fns";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -181,12 +183,15 @@ const Dashboard = () => {
                   <div className="flex items-center gap-4 text-sm text-gray-500">
                     <span>
                       By{" "}
-                      {article.author?.fullName ||
-                        article.author?.username ||
-                        "Unknown"}
+                      <span className="font-medium">
+                        {article.author?.fullName ||
+                          article.author?.username ||
+                          "Unknown"}
+                      </span>
                     </span>
-                    <span>
-                      {new Date(article.createdAt).toLocaleDateString()}
+                    <span className="flex items-center gap-1 font-medium">
+                      <FiCalendar className="inline w-3 h-3 mr-1" />
+                      {formatDate(new Date(article.createdAt), "MMM dd, yyyy")}
                     </span>
                     <span
                       className={`px-2 py-1 rounded-full text-xs ${
@@ -201,9 +206,9 @@ const Dashboard = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="flex items-center gap-1 text-center">
-                      <FiEye className="w-4 h-4" />
-                      {article.views || 0}
-                    </span>
+                    <FiEye className="w-4 h-4" />
+                    {article.views || 0}
+                  </span>
                 </div>
               </div>
             ))}

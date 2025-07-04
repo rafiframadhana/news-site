@@ -2,13 +2,14 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
-import { FiEdit3, FiTrash2, FiEye, FiPlus, FiSearch } from "react-icons/fi";
+import { FiEdit3, FiTrash2, FiEye, FiPlus, FiSearch, FiCalendar } from "react-icons/fi";
 import { articleService } from "../../services/articleService";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import LoadingSpinner from "../../components/ui/LoadingSpinner";
 import Badge from "../../components/ui/Badge";
+import { formatDate } from "date-fns";
 
 const ArticlesList = () => {
   const queryClient = useQueryClient();
@@ -189,7 +190,7 @@ const ArticlesList = () => {
         <div className="space-y-4">
           {filteredArticles.map((article) => (
             <Card key={article._id} className="p-6">
-              <div className="flex items-start justify-between">
+              <div className="block sm:flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <h3 className="text-lg font-semibold text-gray-900">
@@ -197,11 +198,11 @@ const ArticlesList = () => {
                     </h3>
                   </div>
 
-                  <div className="pb-2">
+                  <div className="mb-2 flex items-center gap-2">
                     <Badge variant={getStatusBadgeVariant(article.status)}>
                       {toCapitalCase(article.status)}
                     </Badge>
-                    {article.featured && <Badge variant="info">Featured</Badge>}
+                    {article.featured && <Badge variant="warning">Featured</Badge>}
                   </div>
 
                   {article.excerpt && (
@@ -222,9 +223,15 @@ const ArticlesList = () => {
                           article.author?.lastName || "Unknown Author"}
                       </Link>
                     </span>
-                    <span>Category: {toCapitalCase(article.category)}</span>
                     <span>
-                      {new Date(article.createdAt).toLocaleDateString()}
+                      Category:{" "}
+                      <span className="font-medium">
+                        {toCapitalCase(article.category)}
+                      </span>
+                    </span>
+                    <span className="font-medium flex items-center gap-1">
+                      <FiCalendar className="inline w-4 h-4 mr-1" />
+                      {formatDate(new Date(article.createdAt), "MMM dd, yyyy")}
                     </span>
                     <span className="flex items-center gap-1 text-center">
                       <FiEye className="w-4 h-4" />
@@ -246,7 +253,7 @@ const ArticlesList = () => {
                   )}
                 </div>
 
-                <div className="flex items-center gap-2 ml-6">
+                <div className="flex items-center gap-2 sm:ml-6 mt-5 sm:mt-0">
                   {article.status === "published" && (
                     <Link to={`/article/${article.slug}`} target="_blank">
                       <Button
