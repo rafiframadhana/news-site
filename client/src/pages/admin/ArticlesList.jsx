@@ -1,25 +1,25 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'react-hot-toast';
-import { FiEdit3, FiTrash2, FiEye, FiPlus, FiSearch } from 'react-icons/fi';
-import { articleService } from '../../services/articleService';
-import Card from '../../components/ui/Card';
-import Button from '../../components/ui/Button';
-import Input from '../../components/ui/Input';
-import LoadingSpinner from '../../components/ui/LoadingSpinner';
-import Badge from '../../components/ui/Badge';
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "react-hot-toast";
+import { FiEdit3, FiTrash2, FiEye, FiPlus, FiSearch } from "react-icons/fi";
+import { articleService } from "../../services/articleService";
+import Card from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
+import Input from "../../components/ui/Input";
+import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import Badge from "../../components/ui/Badge";
 
 const ArticlesList = () => {
   const queryClient = useQueryClient();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [filterCategory, setFilterCategory] = useState('all');
-  const [filterAuthor, setFilterAuthor] = useState('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterCategory, setFilterCategory] = useState("all");
+  const [filterAuthor, setFilterAuthor] = useState("all");
 
   const { data: articlesData, isLoading } = useQuery({
-    queryKey: ['articles', 'admin'],
-    queryFn: () => articleService.getArticles() // Fetch ALL articles for admin
+    queryKey: ["articles", "admin"],
+    queryFn: () => articleService.getArticles(), // Fetch ALL articles for admin
   });
 
   const articles = articlesData?.articles || [];
@@ -27,56 +27,80 @@ const ArticlesList = () => {
   const deleteArticleMutation = useMutation({
     mutationFn: articleService.deleteArticle,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['articles'] });
-      toast.success('Article deleted successfully');
+      queryClient.invalidateQueries({ queryKey: ["articles"] });
+      toast.success("Article deleted successfully");
     },
     onError: (error) => {
-      toast.error(error.response?.data?.message || 'Failed to delete article');
-    }
+      toast.error(error.response?.data?.message || "Failed to delete article");
+    },
   });
 
   // Get unique authors for filtering
-  const authors = [...new Set((Array.isArray(articles) ? articles : [])
-    .filter(article => article.author)
-    .map(article => article.author._id))]
-    .map(authorId => {
-      const article = articles.find(a => a.author && a.author._id === authorId);
+  const authors = [
+    ...new Set(
+      (Array.isArray(articles) ? articles : [])
+        .filter((article) => article.author)
+        .map((article) => article.author._id)
+    ),
+  ]
+    .map((authorId) => {
+      const article = articles.find(
+        (a) => a.author && a.author._id === authorId
+      );
       return article ? article.author : null;
     })
     .filter(Boolean);
 
   // Filter articles based on search and filters
-  const filteredArticles = (Array.isArray(articles) ? articles : []).filter(article => {
-    const matchesSearch = article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         article.excerpt?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === 'all' || article.status === filterStatus;
-    const matchesCategory = filterCategory === 'all' || article.category === filterCategory;
-    const matchesAuthor = filterAuthor === 'all' || 
-                          (article.author && article.author._id === filterAuthor);
-    
-    return matchesSearch && matchesStatus && matchesCategory && matchesAuthor;
-  });
+  const filteredArticles = (Array.isArray(articles) ? articles : []).filter(
+    (article) => {
+      const matchesSearch =
+        article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        article.excerpt?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus =
+        filterStatus === "all" || article.status === filterStatus;
+      const matchesCategory =
+        filterCategory === "all" || article.category === filterCategory;
+      const matchesAuthor =
+        filterAuthor === "all" ||
+        (article.author && article.author._id === filterAuthor);
+
+      return matchesSearch && matchesStatus && matchesCategory && matchesAuthor;
+    }
+  );
 
   const handleDeleteArticle = (articleId, articleTitle) => {
-    if (window.confirm(`Are you sure you want to delete "${articleTitle}"? This action cannot be undone.`)) {
+    if (
+      window.confirm(
+        `Are you sure you want to delete "${articleTitle}"? This action cannot be undone.`
+      )
+    ) {
       deleteArticleMutation.mutate(articleId);
     }
   };
 
+  //To capital case
+  const toCapitalCase = (str) => {
+    if (!str) return "";
+    return str[0].toUpperCase() + str.slice(1);
+  };
+
   const getStatusBadgeVariant = (status) => {
     switch (status) {
-      case 'published':
-        return 'success';
-      case 'draft':
-        return 'warning';
-      case 'archived':
-        return 'secondary';
+      case "published":
+        return "success";
+      case "draft":
+        return "warning";
+      case "archived":
+        return "secondary";
       default:
-        return 'secondary';
+        return "secondary";
     }
   };
 
-  const categories = [...new Set(articles.map(article => article.category))].filter(Boolean);
+  const categories = [
+    ...new Set(articles.map((article) => article.category)),
+  ].filter(Boolean);
 
   if (isLoading) {
     return (
@@ -91,7 +115,9 @@ const ArticlesList = () => {
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Manage Articles</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Manage Articles
+          </h1>
           <p className="text-gray-600">View, edit, and manage all articles</p>
         </div>
       </div>
@@ -122,7 +148,7 @@ const ArticlesList = () => {
             <option value="draft">Draft</option>
             <option value="archived">Archived</option>
           </select>
-          
+
           {/* Author Filter */}
           <select
             value={filterAuthor}
@@ -130,7 +156,7 @@ const ArticlesList = () => {
             className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="all">All Authors</option>
-            {authors.map(author => (
+            {authors.map((author) => (
               <option key={author._id} value={author._id}>
                 {author.fullName || author.username}
               </option>
@@ -144,7 +170,7 @@ const ArticlesList = () => {
             className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="all">All Categories</option>
-            {categories.map(category => (
+            {categories.map((category) => (
               <option key={category} value={category}>
                 {category.charAt(0).toUpperCase() + category.slice(1)}
               </option>
@@ -169,34 +195,43 @@ const ArticlesList = () => {
                     <h3 className="text-lg font-semibold text-gray-900">
                       {article.title}
                     </h3>
-                    <Badge variant={getStatusBadgeVariant(article.status)}>
-                      {article.status}
-                    </Badge>
-                    {article.featured && (
-                      <Badge variant="info">Featured</Badge>
-                    )}
                   </div>
-                  
+
+                  <div className="pb-2">
+                    <Badge variant={getStatusBadgeVariant(article.status)}>
+                      {toCapitalCase(article.status)}
+                    </Badge>
+                    {article.featured && <Badge variant="info">Featured</Badge>}
+                  </div>
+
                   {article.excerpt && (
                     <p className="text-gray-600 mb-3 line-clamp-2">
                       {article.excerpt}
                     </p>
                   )}
-                  
+
                   <div className="flex items-center gap-6 text-sm text-gray-500">
-                    <span className="font-medium">Author: 
-                      <Link to={`/author/${article.author?.username}`} className="ml-1 text-blue-600 hover:underline">
-                        {article.author?.firstName + " " + article.author?.lastName || 'Unknown Author'}
+                    <span className="font-medium">
+                      Author:
+                      <Link
+                        to={`/author/${article.author?.username}`}
+                        className="ml-1 text-blue-600 hover:underline"
+                      >
+                        {article.author?.firstName +
+                          " " +
+                          article.author?.lastName || "Unknown Author"}
                       </Link>
                     </span>
-                    <span>Category: {article.category}</span>
-                    <span>{new Date(article.createdAt).toLocaleDateString()}</span>
-                    <span className="flex items-center gap-1">
+                    <span>Category: {toCapitalCase(article.category)}</span>
+                    <span>
+                      {new Date(article.createdAt).toLocaleDateString()}
+                    </span>
+                    <span className="flex items-center gap-1 text-center">
                       <FiEye className="w-4 h-4" />
-                      {article.views || 0} views
+                      {article.views || 0}
                     </span>
                   </div>
-                  
+
                   {article.tags && article.tags.length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-3">
                       {article.tags.map((tag, index) => (
@@ -210,29 +245,39 @@ const ArticlesList = () => {
                     </div>
                   )}
                 </div>
-                
+
                 <div className="flex items-center gap-2 ml-6">
-                  {article.status === 'published' && (
+                  {article.status === "published" && (
                     <Link to={`/article/${article.slug}`} target="_blank">
-                      <Button variant="outline" size="sm" className="flex items-center gap-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center gap-1"
+                      >
                         <FiEye className="w-4 h-4" />
                         View
                       </Button>
                     </Link>
                   )}
-                  
+
                   <Link to={`/author/articles/edit/${article._id}`}>
-                    <Button variant="outline" size="sm" className="flex items-center gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-1"
+                    >
                       <FiEdit3 className="w-4 h-4" />
                       Edit
                     </Button>
                   </Link>
-                  
+
                   <Button
                     variant="outline"
                     size="sm"
                     className="flex items-center gap-1 text-red-600 hover:text-red-700 hover:border-red-300"
-                    onClick={() => handleDeleteArticle(article._id, article.title)}
+                    onClick={() =>
+                      handleDeleteArticle(article._id, article.title)
+                    }
                     disabled={deleteArticleMutation.isPending}
                   >
                     <FiTrash2 className="w-4 h-4" />
@@ -246,7 +291,9 @@ const ArticlesList = () => {
       ) : (
         <Card className="p-12 text-center">
           <div className="text-gray-500">
-            {searchTerm || filterStatus !== 'all' || filterCategory !== 'all' ? (
+            {searchTerm ||
+            filterStatus !== "all" ||
+            filterCategory !== "all" ? (
               <>
                 <p className="text-lg mb-2">No articles found</p>
                 <p>Try adjusting your search criteria or filters</p>
@@ -254,7 +301,9 @@ const ArticlesList = () => {
             ) : (
               <>
                 <p className="text-lg mb-2">No articles yet</p>
-                <p className="mb-4">Get started by creating your first article</p>
+                <p className="mb-4">
+                  Get started by creating your first article
+                </p>
                 <Link to="/author/articles/create">
                   <Button>Create Article</Button>
                 </Link>

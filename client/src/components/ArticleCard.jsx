@@ -63,7 +63,7 @@ const ArticleCard = ({ article, variant = 'grid', showAuthor = true }) => {
                 </div>
                 <div className="flex items-center gap-1">
                   <FiEye className="w-4 h-4" />
-                  <span>{article.views || 0} views</span>
+                  <span>{article.views || 0}</span>
                 </div>
               </div>
             </div>
@@ -130,7 +130,7 @@ const ArticleCard = ({ article, variant = 'grid', showAuthor = true }) => {
           <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-200">
             <div className="flex items-center gap-1 text-sm text-gray-500">
               <FiEye className="w-4 h-4" />
-              <span>{article.views || 0} views</span>
+              <span>{article.views || 0}</span>
             </div>
             
             {article.tags && article.tags.length > 0 && (

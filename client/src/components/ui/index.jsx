@@ -6,3 +6,4 @@ export { default as Modal } from './Modal.jsx';
 export { default as Alert } from './Alert.jsx';
 export { default as Card } from './Card.jsx';
 export { default as Badge } from './Badge.jsx';
+export { default as MarkdownEditor } from './MarkdownEditor.jsx';

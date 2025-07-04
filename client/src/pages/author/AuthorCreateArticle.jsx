@@ -9,6 +9,7 @@ import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import MarkdownEditor from "../../components/ui/MarkdownEditor";
 
 const AuthorCreateArticle = () => {
   const navigate = useNavigate();
@@ -51,6 +52,13 @@ const AuthorCreateArticle = () => {
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
+  const handleContentChange = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      content: e.target.value,
     }));
   };
 
@@ -240,14 +248,11 @@ const AuthorCreateArticle = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Content *
               </label>
-              <textarea
-                name="content"
+              <MarkdownEditor
                 value={formData.content}
-                onChange={handleInputChange}
-                rows={12}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Write your article content here..."
-                required
+                onChange={handleContentChange}
+                placeholder="Write your article content here using markdown..."
+                className="w-full"
               />
             </div>
 

@@ -336,7 +336,7 @@ const Home = () => {
                   </div>
                 )}
 
-                <Card.Content className="px-6 pt-0 pb-6">
+                <Card.Content className="px-6 pt-3 sm:pt-1 pb-6">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2 mb-2">
                       {article.category && (
@@ -368,7 +368,7 @@ const Home = () => {
                   </h3>
 
                   <p className="text-gray-600 mb-4 line-clamp-3">
-                    {truncateContent(article.content)}
+                    {truncateContent(article.excerpt)}
                   </p>
 
                   <div className="flex items-center justify-between">

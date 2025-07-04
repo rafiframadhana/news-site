@@ -70,6 +70,12 @@ const AuthorArticlesList = () => {
     }
   };
 
+  //To capital case
+  const toCapitalCase = (str) => {
+    if (!str) return "";
+    return str[0].toUpperCase() + str.slice(1);
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-96">
@@ -175,13 +181,13 @@ const AuthorArticlesList = () => {
                           : "bg-yellow-100 text-yellow-800"
                       }`}
                     >
-                      {article.status}
+                      {toCapitalCase(article.status)}
                     </span>
                     <span className="flex items-center gap-1">
                       <FiEye className="w-3 h-3" />
-                      {article.views || 0} views
+                      {article.views || 0}
                     </span>
-                    <span>Category: {article.category}</span>
+                    <span>Category: {toCapitalCase(article.category)}</span>
                     <span>
                       Updated:{" "}
                       {new Date(article.updatedAt).toLocaleDateString()}

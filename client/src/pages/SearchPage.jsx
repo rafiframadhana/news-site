@@ -157,12 +157,12 @@ const SearchPage = () => {
 
               {/* View Mode Toggle */}
               {!isLoading && articles.length > 0 && (
-                <div className="flex rounded-md border border-gray-300">
+                <div className="hidden sm:flex rounded-md border border-gray-300">
                   <button
                     onClick={() => setViewMode("grid")}
                     className={`p-2 ${
                       viewMode === "grid"
-                        ? "bg-blue-500 text-white"
+                        ? "bg-black text-white"
                         : "bg-white text-gray-500 hover:text-gray-700"
                     }`}
                   >
@@ -172,7 +172,7 @@ const SearchPage = () => {
                     onClick={() => setViewMode("list")}
                     className={`p-2 ${
                       viewMode === "list"
-                        ? "bg-blue-500 text-white"
+                        ? "bg-black text-white"
                         : "bg-white text-gray-500 hover:text-gray-700"
                     }`}
                   >

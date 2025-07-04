@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { FiFileText, FiEdit3, FiEye, FiPlus, FiSettings } from "react-icons/fi";
+import { FiFileText, FiEdit3, FiEye, FiPlus, FiSettings, FiCalendar } from "react-icons/fi";
 import { useAuth } from "../../context/AuthContext";
 import { articleService } from "../../services/articleService";
 import Card from "../../components/ui/Card";
@@ -38,6 +38,12 @@ const AuthorDashboard = () => {
   const recentArticles = articles
     .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
     .slice(0, 5);
+
+  //To capital case
+  const toCapitalCase = (str) => {
+    if (!str) return "";
+    return str[0].toUpperCase() + str.slice(1);
+  };
 
   if (isLoading) {
     return (
@@ -179,27 +185,31 @@ const AuthorDashboard = () => {
                 key={article._id}
                 className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
               >
-                <div className="flex-1">
+                <div className="flex-2">
                   <h3 className="text-lg font-medium text-gray-900 mb-1">
                     {article.title}
                   </h3>
                   <div className="flex items-center space-x-4 text-sm text-gray-500">
                     <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                         article.status === "published"
                           ? "bg-green-100 text-green-800"
                           : "bg-yellow-100 text-yellow-800"
                       }`}
                     >
-                      {article.status}
+                      {toCapitalCase(article.status)}
                     </span>
-                    <span>{article.views || 0} views</span>
-                    <span>
+                    <span className="hidden sm:flex items-center gap-1">
+                      <FiEye className="w-3 h-3" />
+                      {article.views || 0}
+                    </span>
+                    <span className="hidden sm:flex items-center gap-1">
+                      <FiCalendar className="w-3 h-3" /> 
                       {new Date(article.updatedAt).toLocaleDateString()}
                     </span>
                   </div>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="block text-center space-y-2 sm:items-center sm:space-x-2">
                   <Button
                     as="a"
                     href={`/author/articles/edit/${article._id}`}

@@ -280,7 +280,7 @@ const getDashboardStats = async (req, res) => {
         .populate('author', 'username firstName lastName fullName')
         .sort({ createdAt: -1 })
         .limit(10)
-        .select('title slug status author createdAt publishedAt')
+        .select('title slug status author createdAt publishedAt views')
         .lean();
 
       stats = {

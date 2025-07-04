@@ -1,12 +1,12 @@
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { FiCalendar, FiUser, FiEye, FiClock, FiTag } from "react-icons/fi";
-import DOMPurify from "dompurify";
 import { articleService } from "../services/articleService";
 import LoadingSpinner from "../components/ui/LoadingSpinner";
 import Badge from "../components/ui/Badge";
 import { formatDate, getReadingTime } from "../utils/dateUtils";
 import { getCategoryLabel } from "../utils/constants";
+import { markdownToHtml, isMarkdown } from "../utils/markdownUtils";
 
 const ArticleDetail = () => {
   const { slug } = useParams();
@@ -47,8 +47,10 @@ const ArticleDetail = () => {
     );
   }
 
-  // Sanitize HTML content
-  const sanitizedContent = DOMPurify.sanitize(article.content);
+  // Process content - convert markdown to HTML if needed
+  const processedContent = isMarkdown(article.content) 
+    ? markdownToHtml(article.content)
+    : article.content;
 
   return (
     <article className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -113,7 +115,7 @@ const ArticleDetail = () => {
           {/* Views */}
           <div className="flex items-center gap-2">
             <FiEye className="w-4 h-4" />
-            <span>{article.views || 0} views</span>
+            <span>{article.views || 0}</span>
           </div>
         </div>
 
@@ -132,7 +134,7 @@ const ArticleDetail = () => {
       {/* Article Content */}
       <div className="prose prose-lg max-w-none">
         <div
-          dangerouslySetInnerHTML={{ __html: sanitizedContent }}
+          dangerouslySetInnerHTML={{ __html: processedContent }}
           className="article-content"
         />
       </div>

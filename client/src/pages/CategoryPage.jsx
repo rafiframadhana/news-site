@@ -88,7 +88,7 @@ const CategoryPage = () => {
             </select>
 
             {/* View Mode Toggle */}
-            <div className="flex rounded-md border border-gray-300">
+            <div className="hidden sm:flex rounded-md border border-gray-300">
               <button
                 onClick={() => setViewMode('grid')}
                 className={`p-2 ${
