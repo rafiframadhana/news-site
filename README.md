@@ -181,17 +181,3 @@ VITE_API_URL=http://localhost:5000/api
 ## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 👨‍💻 Author
-
-- **Your Name** - [Your GitHub Profile](https://github.com/yourusername)
-
-## 🙏 Acknowledgements
-
-- [React](https://reactjs.org/)
-- [Express](https://expressjs.com/)
-- [MongoDB](https://www.mongodb.com/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [Cloudinary](https://cloudinary.com/)
-- [Abstract API](https://www.abstractapi.com/)
-- [Vercel](https://vercel.com/)
