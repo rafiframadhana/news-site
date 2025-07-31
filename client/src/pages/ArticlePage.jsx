@@ -2,7 +2,12 @@ import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { FiCalendar, FiUser, FiEye, FiClock, FiTag } from "react-icons/fi";
 import { articleService } from "../services/articleService";
-import { SimpleLoader, AvatarDisplay, ArticlePageSkeleton } from "../components/ui";
+import {
+  SimpleLoader,
+  AvatarDisplay,
+  ArticlePageSkeleton,
+  Button,
+} from "../components/ui";
 import Badge from "../components/ui/Badge";
 import { formatDate, getReadingTime } from "../utils/dateUtils";
 import { getCategoryLabel } from "../utils/constants";
@@ -44,7 +49,7 @@ const ArticlePage = () => {
   }
 
   // Process content - convert markdown to HTML if needed
-  const processedContent = isMarkdown(article.content) 
+  const processedContent = isMarkdown(article.content)
     ? markdownToHtml(article.content)
     : article.content;
 
@@ -163,7 +168,9 @@ const ArticlePage = () => {
               {/* Author Avatar */}
               <AvatarDisplay
                 avatar={article.author.avatar}
-                userInitials={`${article.author.firstName?.[0] || ''}${article.author.lastName?.[0] || ''}`}
+                userInitials={`${article.author.firstName?.[0] || ""}${
+                  article.author.lastName?.[0] || ""
+                }`}
                 size="md"
               />
 
@@ -191,11 +198,8 @@ const ArticlePage = () => {
 
       {/* Navigation */}
       <div className="mt-12 pt-8 border-t border-gray-200">
-        <Link
-          to="/"
-          className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium"
-        >
-          ← Back to Home
+        <Link to="/">
+          <Button variant="outline">← Back to Home</Button>
         </Link>
       </div>
     </article>
