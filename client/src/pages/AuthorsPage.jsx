@@ -144,7 +144,7 @@ const AuthorsPage = () => {
   const AuthorListItem = ({ author }) => (
     <Card hover className="transition-all duration-200 hover:shadow-md">
       <Link to={`/author/${author.username}`} className="block p-6">
-        <div className="flex items-center space-x-4">
+        <div className="flex items-start space-x-4">
           {/* Author Avatar */}
           <AvatarDisplay
             avatar={author.avatar}
@@ -154,13 +154,13 @@ const AuthorsPage = () => {
 
           {/* Author Info */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center space-x-2 mb-1">
+            <div className="flex-col items-center mb-1">
               <h3 className="text-lg font-semibold text-gray-900">
                 {author.fullName ||
                   `${author.firstName || ""} ${author.lastName || ""}`.trim() ||
                   author.username}
               </h3>
-              <span className="text-sm text-blue-600">@{author.username}</span>
+              <span className="text-sm text-blue-600 mr-2">@{author.username}</span>
               <Badge variant="primary" size="sm" className="flex items-center">
                 <FiEdit className="w-3 h-3 mr-1" />
                 Author

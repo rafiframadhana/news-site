@@ -18,7 +18,7 @@ const ArticleCard = ({ article, variant = 'grid', showAuthor = true }) => {
               <img
                 src={article.featuredImage || defaultImage}
                 alt={article.title}
-                className="w-32 h-24 object-cover rounded-lg"
+                className="w-32 h-28 object-cover rounded-lg"
                 onError={(e) => {
                   e.target.src = defaultImage;
                 }}
