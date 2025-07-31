@@ -240,7 +240,7 @@ const Sidebar = () => {
 
           {/* User Section */}
           {user && (
-            <div className="p-4 border-b border-gray-200">
+            <div className="p-2 border-b border-gray-200">
               <Link 
                 to="/profile" 
                 onClick={closeSidebar}
@@ -252,7 +252,7 @@ const Sidebar = () => {
                   size="md"
                 />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">
+                  <p className="text-sm font-medium text-gray-900 hover:text-blue-700 truncate">
                     {user.fullName ||
                       `${user.firstName || ""} ${user.lastName || ""}` ||
                       user.username}
