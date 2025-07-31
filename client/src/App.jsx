@@ -39,6 +39,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import AuthorRoute from './components/AuthorRoute';
 import Footer from './components/Layout/Footer.jsx';
+import ScrollToTopButton from './components/ScrollToTopButton';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -122,6 +123,7 @@ function App() {
               </Routes>
             </main>
             <Footer />
+            <ScrollToTopButton />
           </div>
           <Toaster position="top-right" />
         </Router>
