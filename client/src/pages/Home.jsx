@@ -5,7 +5,7 @@ import { api } from "../services/api";
 import { format } from "date-fns";
 import DOMPurify from "dompurify";
 import { CATEGORIES, getCategoryLabel } from "../utils/constants";
-import LoadingSpinner from "../components/ui/LoadingSpinner";
+import { SimpleLoader, FeaturedArticleSkeleton, CardSkeleton } from "../components/ui";
 import Card from "../components/ui/Card";
 import Badge from "../components/ui/Badge";
 
@@ -13,6 +13,9 @@ const Home = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+  const [isSwipping, setIsSwipping] = useState(false);
 
   // Featured articles for hero slider
   const { data: featuredArticlesData, isLoading: featuredLoading } = useQuery({
@@ -68,6 +71,44 @@ const Home = () => {
     setCurrentSlide(index);
   };
 
+  // Touch handling for mobile swipe
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+    setIsSwipping(true);
+  };
+
+  const onTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+    
+    // Prevent default scrolling during horizontal swipe
+    if (touchStart && Math.abs(touchStart - e.targetTouches[0].clientX) > 10) {
+      e.preventDefault();
+    }
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) {
+      setIsSwipping(false);
+      return;
+    }
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe && featuredArticles.length > 1) {
+      nextSlide();
+    }
+    if (isRightSwipe && featuredArticles.length > 1) {
+      prevSlide();
+    }
+    
+    setIsSwipping(false);
+  };
+
   // Auto-advance slider
   useEffect(() => {
     if (featuredArticles.length > 1) {
@@ -107,15 +148,25 @@ const Home = () => {
         </h2>
 
         {featuredLoading ? (
-          <div className="h-96 flex items-center justify-center">
-            <LoadingSpinner size="lg" />
-          </div>
+          <FeaturedArticleSkeleton />
         ) : featuredArticles.length > 0 ? (
-          <div className="relative rounded-xl overflow-hidden mx-auto shadow-lg group">
+          <div 
+            className={`relative rounded-xl overflow-hidden mx-auto shadow-lg group ${
+              isSwipping ? 'cursor-grabbing' : 'cursor-grab'
+            }`}
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+          >
             {/* Slider Container */}
             <div
-              className="flex transition-transform duration-500 ease-in-out"
-              style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+              className={`flex transition-transform duration-500 ease-in-out touch-pan-y select-none ${
+                isSwipping ? 'duration-100' : 'duration-500'
+              }`}
+              style={{ 
+                transform: `translateX(-${currentSlide * 100}%)`,
+                touchAction: 'pan-y pinch-zoom'
+              }}
             >
               {featuredArticles.map((article) => (
                 <div
@@ -226,9 +277,9 @@ const Home = () => {
               </>
             )}
 
-            {/* Slide Indicators - show on hover */}
+            {/* Slide Indicators - show on hover and always on touch devices */}
             {featuredArticles.length > 1 && (
-              <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
                 {featuredArticles.map((_, index) => (
                   <button
                     key={index}
@@ -256,6 +307,11 @@ const Home = () => {
       <section className="bg-gray-50 max-w-7xl mx-auto px-4 sm:px-6">
         <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 sm:mb-6">
           Latest Topics
+          {!articlesLoading && articles.length > 0 && (
+            <span className="text-lg font-normal text-gray-600 ml-2">
+              ({articles.length} article{articles.length !== 1 ? 's' : ''})
+            </span>
+          )}
         </h2>
         <div className="pb-6 pt-2 border-b hidden sm:block">
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
@@ -309,8 +365,10 @@ const Home = () => {
       {/* Articles Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
         {articlesLoading ? (
-          <div className="flex justify-center items-center py-12">
-            <LoadingSpinner size="lg" />
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <CardSkeleton key={index} />
+            ))}
           </div>
         ) : articles.length === 0 ? (
           <div className="text-center py-12">

@@ -4,7 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { FiMail, FiCalendar, FiFileText, FiGrid, FiList } from 'react-icons/fi';
 import { userService } from '../services/userService';
 import { articleService } from '../services/articleService';
-import LoadingSpinner from '../components/ui/LoadingSpinner';import Button from '../components/ui/Button';
+import { SimpleLoader, AvatarDisplay } from '../components/ui';
+import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 
 import ArticleCard from '../components/ArticleCard';
@@ -33,8 +34,8 @@ const AuthorPage = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-96">
-        <LoadingSpinner />
+      <div className="min-h-screen flex items-center justify-center">
+        <SimpleLoader size="lg" text="Loading author profile" showText={true} />
       </div>
     );
   }
@@ -70,19 +71,11 @@ const AuthorPage = () => {
           <div className="flex flex-col md:flex-row gap-8">
             {/* Avatar */}
             <div className="flex-shrink-0">
-              <div className="w-32 h-32 bg-blue-100 rounded-full flex items-center justify-center">
-                {author.avatar ? (
-                  <img 
-                    src={author.avatar} 
-                    alt={author.fullName}
-                    className="w-32 h-32 rounded-full object-cover"
-                  />
-                ) : (
-                  <span className="text-blue-600 font-semibold text-4xl">
-                    {author.firstName?.[0]}{author.lastName?.[0]}
-                  </span>
-                )}
-              </div>
+              <AvatarDisplay
+                avatar={author.avatar}
+                userInitials={`${author.firstName?.[0] || ''}${author.lastName?.[0] || ''}`}
+                size="2xl"
+              />
             </div>
 
             {/* Author Info */}

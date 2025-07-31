@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { CATEGORIES } from "../../utils/constants";
+import { AvatarDisplay } from "../ui";
 import {
   FiSearch,
   FiMenu,
@@ -128,12 +129,11 @@ const Header = ({ isDashboard = false }) => {
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                   className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 transition-colors"
                 >
-                  <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-medium">
-                      {user?.firstName?.charAt(0)}
-                      {user?.lastName?.charAt(0)}
-                    </span>
-                  </div>
+                  <AvatarDisplay
+                    avatar={user?.avatar}
+                    userInitials={`${user?.firstName?.charAt(0) || ''}${user?.lastName?.charAt(0) || ''}`}
+                    size="sm"
+                  />
                   <span className="hidden md:block">{user?.firstName}</span>
                 </button>
 

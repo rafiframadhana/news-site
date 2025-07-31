@@ -3,7 +3,7 @@ import { useSearchParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { FiSearch, FiFilter, FiGrid, FiList } from "react-icons/fi";
 import { articleService } from "../services/articleService";
-import LoadingSpinner from "../components/ui/LoadingSpinner";
+import { SimpleLoader } from "../components/ui";
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
 import Card from "../components/ui/Card";
@@ -185,7 +185,7 @@ const SearchPage = () => {
             {/* Loading State */}
             {isLoading && (
               <div className="flex justify-center items-center min-h-96">
-                <LoadingSpinner />
+                <SimpleLoader size="lg" text="Searching articles" showText={true} />
               </div>
             )}
 

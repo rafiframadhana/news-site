@@ -9,7 +9,7 @@ import { CATEGORIES } from "../../utils/constants";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
-import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import { SimpleLoader } from "../../components/ui";
 import MarkdownEditor from "../../components/ui/MarkdownEditor";
 
 const AuthorEditArticle = () => {
@@ -97,9 +97,6 @@ const AuthorEditArticle = () => {
       navigate("/author/articles");
     },
     onError: (error) => {
-      console.error("Error updating article:", error);
-      console.error("Error response:", error.response?.data);
-      
       // Show specific validation errors if available
       if (error.response?.data?.errors) {
         const errorMessages = error.response.data.errors.map(err => err.message).join(', ');
@@ -177,17 +174,9 @@ const AuthorEditArticle = () => {
       const formDataUpload = new FormData();
       formDataUpload.append("image", featuredImage);
 
-      console.log(
-        "Uploading image (edit):",
-        featuredImage.name,
-        featuredImage.type,
-        featuredImage.size
-      );
       const response = await uploadService.uploadImage(formDataUpload);
-      console.log("Upload response (edit):", response);
       return response.imageUrl;
     } catch (error) {
-      console.error("Image upload error:", error);
       let errorMessage = "Failed to upload image";
       if (error.response) {
         errorMessage += `: ${
@@ -213,12 +202,14 @@ const AuthorEditArticle = () => {
     try {
       // Upload new image if selected
       let featuredImageUrl = imagePreview; // Keep existing image by default
+      let shouldDeleteOldImage = false;
       
       // Handle based on input type
       if (imageInputType === "upload" && featuredImage) {
         const newImageUrl = await uploadImage();
         if (newImageUrl) {
           featuredImageUrl = newImageUrl;
+          shouldDeleteOldImage = true; // Delete old image when replacing with new upload
         } else {
           return; // Stop if image upload failed
         }
@@ -232,9 +223,28 @@ const AuthorEditArticle = () => {
             toast.error("Please enter a valid image URL");
             return;
           }
+          
+          // Check if the URL is different from existing image
+          if (featuredImageUrl !== article?.featuredImage) {
+            shouldDeleteOldImage = true; // Delete old image when replacing with URL
+          }
         } else {
           // If URL input is selected but empty, treat as intentionally removing the image
           featuredImageUrl = null;
+          shouldDeleteOldImage = true; // Delete old image when removing
+        }
+      }
+
+      // Delete old image from Cloudinary if we're replacing or removing it
+      if (shouldDeleteOldImage && article?.featuredImage) {
+        try {
+          const publicId = uploadService.getPublicIdFromUrl(article.featuredImage);
+          if (publicId) {
+            await uploadService.deleteImage(publicId);
+          }
+        } catch (deleteError) {
+          // Don't fail the whole operation if old image deletion fails
+          console.warn('Failed to delete old article image:', deleteError);
         }
       }
 
@@ -251,26 +261,21 @@ const AuthorEditArticle = () => {
           : [],
       };
 
-      console.log('Sending article data:', articleData); // Debug log
-
       updateArticleMutation.mutate(articleData);
-    } catch (error) {
-      console.error("Error in handleSubmit:", error);
+    } catch {
       toast.error("An error occurred while updating the article");
     }
   };
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-96">
-        <LoadingSpinner />
+      <div className="min-h-screen flex items-center justify-center">
+        <SimpleLoader size="lg" text="Loading article for editing" showText={true} />
       </div>
     );
   }
 
   if (error) {
-    console.error("Error fetching article:", error);
-    
     return (
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center">
@@ -302,7 +307,7 @@ const AuthorEditArticle = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Edit Article</h1>
@@ -582,7 +587,7 @@ const AuthorEditArticle = () => {
             className="flex items-center gap-2"
           >
             {(updateArticleMutation.isPending || uploadingImage) && (
-              <LoadingSpinner size="sm" />
+              <SimpleLoader size="xs" />
             )}
             Update Article
           </Button>

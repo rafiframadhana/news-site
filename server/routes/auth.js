@@ -26,7 +26,13 @@ const registerValidation = [
   body('email')
     .isEmail()
     .withMessage('Please provide a valid email format')
-    .normalizeEmail()
+    .normalizeEmail({
+      gmail_remove_dots: false,
+      gmail_remove_subaddress: false,
+      outlookdotcom_remove_subaddress: false,
+      yahoo_remove_subaddress: false,
+      icloud_remove_subaddress: false
+    })
     .custom(async (email) => {
       // First perform basic validation
       const basicResult = validateEmail(email);
@@ -83,7 +89,6 @@ const loginValidation = [
   body('email')
     .isEmail()
     .withMessage('Please provide a valid email')
-    .normalizeEmail()
     .custom(async (email) => {
       // For login, we only verify the format but not disposable email check
       // since the user might have already registered with a disposable email

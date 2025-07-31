@@ -8,7 +8,7 @@ import { CATEGORIES } from "../../utils/constants";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
-import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import { SimpleLoader } from "../../components/ui";
 import MarkdownEditor from "../../components/ui/MarkdownEditor";
 
 const AuthorCreateArticle = () => {
@@ -212,7 +212,7 @@ const AuthorCreateArticle = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -472,7 +472,7 @@ const AuthorCreateArticle = () => {
             className="flex items-center gap-2"
           >
             {(createArticleMutation.isPending || uploadingImage) && (
-              <LoadingSpinner size="sm" />
+              <SimpleLoader size="xs" />
             )}
             Create Article
           </Button>

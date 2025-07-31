@@ -1,6 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import LoadingSpinner from './ui/LoadingSpinner';
+import { SimpleLoader } from './ui';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -8,8 +8,8 @@ const ProtectedRoute = ({ children }) => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <LoadingSpinner size="lg" />
+      <div className="min-h-screen flex items-center justify-center">
+        <SimpleLoader size="lg" text="Verifying access" showText={true} />
       </div>
     );
   }

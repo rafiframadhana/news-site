@@ -13,7 +13,7 @@ import {
 import { userService } from "../../services/userService";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
-import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import { SimpleLoader } from "../../components/ui";
 import { formatDate } from "date-fns";
 
 const Dashboard = () => {
@@ -56,8 +56,8 @@ const Dashboard = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-96">
-        <LoadingSpinner />
+      <div className="min-h-screen flex items-center justify-center">
+        <SimpleLoader size="lg" text="Loading dashboard data" showText={true} />
       </div>
     );
   }
@@ -88,7 +88,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">

@@ -4,8 +4,9 @@ import {
   Card,
   Badge,
   Modal,
-  LoadingSpinner,
+  SimpleLoader,
   Input,
+  AvatarDisplay,
 } from "../../components/ui/index.jsx";
 import {
   useUsers,
@@ -45,7 +46,7 @@ const ManageUsers = () => {
       await deleteUserMutation.mutateAsync(userToDelete._id);
       setDeleteModalOpen(false);
       setUserToDelete(null);
-    } catch (error) {
+    } catch {
       // Error handled by mutation
     }
   };
@@ -67,7 +68,7 @@ const ManageUsers = () => {
       setRoleModalOpen(false);
       setUserToUpdateRole(null);
       setNewRole("");
-    } catch (error) {
+    } catch {
       // Error handled by mutation
     }
   };
@@ -152,8 +153,7 @@ const ManageUsers = () => {
         </div>
         <div className="flex justify-center text-center items-center h-64 bg-white rounded-lg shadow-sm border border-gray-100">
           <div className="text-center">
-            <LoadingSpinner size="lg" />
-            <p className="mt-4 text-gray-600">Loading users...</p>
+            <SimpleLoader size="lg" text="Loading users..." showText={true} />
           </div>
         </div>
       </div>
@@ -222,7 +222,7 @@ const ManageUsers = () => {
   const totalPages = data?.totalPages || 1;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div className="min-h-screen max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       {/* Header */}
       <div className="mb-8 border-b pb-6">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Manage Users</h1>
@@ -349,17 +349,19 @@ const ManageUsers = () => {
                 {/* User Info */}
                 <div className="flex items-center space-x-4">
                   <div className="flex-shrink-0">
-                    <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center text-white shadow-sm">
-                      <span className="text-lg font-medium">
-                        {user.firstName
+                    <AvatarDisplay
+                      avatar={user.avatar}
+                      userInitials={
+                        user.firstName
                           ? `${user.firstName[0]}${
                               user.lastName ? user.lastName[0] : ""
                             }`
                           : user.name
                           ? user.name.charAt(0).toUpperCase()
-                          : user.username.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
+                          : user.username.charAt(0).toUpperCase()
+                      }
+                      size="lg"
+                    />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
@@ -696,9 +698,10 @@ const ManageUsers = () => {
           <div className="flex items-start space-x-4">
             <div className="flex-shrink-0">
               {userToUpdateRole && (
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center text-white">
-                  <span className="text-lg font-medium">
-                    {userToUpdateRole.firstName
+                <AvatarDisplay
+                  avatar={userToUpdateRole.avatar}
+                  userInitials={
+                    userToUpdateRole.firstName
                       ? `${userToUpdateRole.firstName[0]}${
                           userToUpdateRole.lastName
                             ? userToUpdateRole.lastName[0]
@@ -706,9 +709,10 @@ const ManageUsers = () => {
                         }`
                       : userToUpdateRole.name
                       ? userToUpdateRole.name.charAt(0).toUpperCase()
-                      : userToUpdateRole.username.charAt(0).toUpperCase()}
-                  </span>
-                </div>
+                      : userToUpdateRole.username.charAt(0).toUpperCase()
+                  }
+                  size="md"
+                />
               )}
             </div>
             <div>

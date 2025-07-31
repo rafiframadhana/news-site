@@ -1,7 +1,13 @@
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 import { v2 as cloudinary } from 'cloudinary';
+
+// Get __dirname equivalent for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Configure Cloudinary (required)
 cloudinary.config({
@@ -250,10 +256,56 @@ const uploadFromUrl = async (req, res) => {
   }
 };
 
+// @desc    Upload avatar image to Cloudinary
+// @route   POST /api/upload/avatar
+// @access  Private
+const uploadAvatar = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    // Upload to Cloudinary with avatar-specific transformations
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: 'news-site/avatars',
+      transformation: [
+        { width: 400, height: 400, crop: 'limit' },
+        { quality: 'auto', fetch_format: 'auto' }
+      ],
+      resource_type: 'auto'
+    });
+
+    // Delete temporary file
+    fs.unlinkSync(req.file.path);
+
+    res.json({
+      message: 'Avatar uploaded successfully to Cloudinary',
+      imageUrl: result.secure_url,
+      publicId: result.public_id,
+      width: result.width,
+      height: result.height,
+      format: result.format
+    });
+  } catch (error) {
+    console.error('Cloudinary avatar upload error:', error);
+    
+    // Clean up temporary file if there's an error
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+
+    res.status(500).json({
+      message: 'Error uploading avatar to Cloudinary',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Upload failed'
+    });
+  }
+};
+
 export {
   upload,
   uploadImage,
   uploadMultipleImages,
   deleteCloudinaryImage,
-  uploadFromUrl
+  uploadFromUrl,
+  uploadAvatar
 };

@@ -16,7 +16,7 @@ import { articleService } from "../services/articleService";
 import Card from "../components/ui/Card";
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
-import LoadingSpinner from "../components/ui/LoadingSpinner";
+import { SimpleLoader, CardSkeleton, AvatarUpload } from "../components/ui";
 import ArticleCard from "../components/ArticleCard";
 
 const Profile = () => {
@@ -28,15 +28,8 @@ const Profile = () => {
     lastName: user?.lastName || "",
     email: user?.email || "",
     bio: user?.bio || "",
+    avatar: user?.avatar || null,
   });
-
-  // Debug authentication state
-  console.log("Profile - Auth Debug:");
-  console.log("- User:", user);
-  console.log("- User ID:", user?._id || user?.id);
-  console.log("- Is Authenticated:", isAuthenticated);
-  console.log("- Is Loading:", isLoading);
-  console.log("- Token from cookies:", document.cookie.includes("token"));
 
   // Get user ID (handle both _id and id properties)
   const userId = user?._id || user?.id;
@@ -45,20 +38,13 @@ const Profile = () => {
   const {
     data: articlesData,
     isLoading: articlesLoading,
-    error,
   } = useQuery({
     queryKey: ["articles", "author", userId],
     queryFn: () => {
-      console.log("Fetching articles for user:", userId);
       return articleService.getArticlesByAuthor(userId);
     },
     enabled: !!userId,
   });
-
-  console.log("Profile - User ID:", userId);
-  console.log("Profile - Articles Data:", articlesData);
-  console.log("Profile - Articles Loading:", articlesLoading);
-  console.log("Profile - Articles Error:", error);
 
   const articles = Array.isArray(articlesData?.articles)
     ? articlesData.articles
@@ -76,7 +62,6 @@ const Profile = () => {
       window.location.reload();
     },
     onError: (error) => {
-      console.error('Profile update error:', error);
       toast.error(error.response?.data?.message || "Failed to update profile");
     },
   });
@@ -100,8 +85,25 @@ const Profile = () => {
       lastName: user?.lastName || "",
       email: user?.email || "",
       bio: user?.bio || "",
+      avatar: user?.avatar || null,
     });
     setIsEditing(false);
+  };
+
+  const handleAvatarUpdate = async (avatarUrl) => {
+    setFormData((prev) => ({
+      ...prev,
+      avatar: avatarUrl,
+    }));
+    
+    // Auto-save avatar update
+    try {
+      const updateData = { avatar: avatarUrl };
+      await updateProfileMutation.mutateAsync(updateData);
+      // Don't show success toast here since AvatarUpload component already shows it
+    } catch {
+      // Error toast will be handled by the mutation onError
+    }
   };
 
   const publishedArticles = articles.filter(
@@ -115,19 +117,10 @@ const Profile = () => {
     0
   );
 
-  // Debug log for statistics
-  console.log("Profile Statistics Debug:");
-  console.log("- Total articles:", articles.length);
-  console.log("- Published articles:", publishedArticles.length);
-  console.log("- Draft articles:", draftArticles.length);
-  console.log("- Total views:", totalViews);
-  console.log("- Articles data:", articles);
-
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-96">
-        <LoadingSpinner />
-        <span className="ml-2">Loading user data...</span>
+      <div className="min-h-screen flex items-center justify-center">
+        <SimpleLoader size="lg" text="Loading user data" showText={true} />
       </div>
     );
   }
@@ -151,7 +144,7 @@ const Profile = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Profile Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">My Profile</h1>
@@ -195,6 +188,21 @@ const Profile = () => {
 
             {isEditing ? (
               <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Avatar Upload Section */}
+                <div className="flex items-center gap-4 pb-6 border-b border-gray-200">
+                  <AvatarUpload
+                    currentAvatar={formData.avatar}
+                    onAvatarUpdate={handleAvatarUpdate}
+                    userInitials={`${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`}
+                  />
+                  <div>
+                    <h4 className="text-lg font-medium text-gray-900">Profile Photo</h4>
+                    <p className="text-sm text-gray-600">
+                      Click to upload and crop your profile photo. You can adjust the image before saving.
+                    </p>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -256,7 +264,7 @@ const Profile = () => {
                     className="flex items-center gap-2"
                   >
                     {updateProfileMutation.isPending && (
-                      <LoadingSpinner size="sm" />
+                      <SimpleLoader size="xs" />
                     )}
                     <FiSave className="w-4 h-4" />
                     Save Changes
@@ -266,12 +274,11 @@ const Profile = () => {
             ) : (
               <div className="space-y-6">
                 <div className="flex items-center gap-4">
-                  <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-blue-600 font-semibold text-2xl">
-                      {user.firstName?.[0]}
-                      {user.lastName?.[0]}
-                    </span>
-                  </div>
+                  <AvatarUpload
+                    currentAvatar={formData.avatar || user?.avatar}
+                    onAvatarUpdate={handleAvatarUpdate}
+                    userInitials={`${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`}
+                  />
                   <div>
                     <h3 className="text-2xl font-bold text-gray-900">
                       {user.fullName || `${user.firstName} ${user.lastName}`}
@@ -326,7 +333,7 @@ const Profile = () => {
             </h3>
             {articlesLoading ? (
               <div className="flex justify-center py-4">
-                <LoadingSpinner size="sm" />
+                <SimpleLoader size="sm" />
               </div>
             ) : (
               <div className="space-y-4">
@@ -405,26 +412,26 @@ const Profile = () => {
       </div>
 
       {/* Recent Articles */}
-      {articles.length > 0 && (
+      {(user.role === "admin" || user.role === "author") && (
         <div className="mt-12">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-900">My Articles</h2>
-            {(user.role === "admin" || user.role === "author") && (
-              <Button
-                as="a"
-                onClick={() => (window.location.href = "/author/articles")}
-                variant="outline"
-              >
-                View All
-              </Button>
-            )}
+            <Button
+              as="a"
+              onClick={() => (window.location.href = "/author/articles")}
+              variant="outline"
+            >
+              View All
+            </Button>
           </div>
 
           {articlesLoading ? (
-            <div className="flex justify-center items-center min-h-48">
-              <LoadingSpinner />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array.from({ length: 6 }).map((_, index) => (
+                <CardSkeleton key={index} />
+              ))}
             </div>
-          ) : (
+          ) : articles.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {articles.slice(0, 6).map((article) => (
                 <ArticleCard
@@ -434,6 +441,26 @@ const Profile = () => {
                   showAuthor={false}
                 />
               ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+              <div className="flex flex-col items-center">
+                <FiFileText className="w-12 h-12 text-gray-400 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  No articles yet
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  You haven't created any articles yet. Start writing your first article!
+                </p>
+                <Button
+                  as="a"
+                  onClick={() => (window.location.href = "/author/articles/create")}
+                  className="flex items-center gap-2"
+                >
+                  <FiEdit3 className="w-4 h-4" />
+                  Create Your First Article
+                </Button>
+              </div>
             </div>
           )}
         </div>

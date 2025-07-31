@@ -4,7 +4,8 @@ import {
   uploadImage,
   uploadMultipleImages,
   deleteCloudinaryImage,
-  uploadFromUrl
+  uploadFromUrl,
+  uploadAvatar
 } from '../controllers/uploadController.js';
 import { authenticateToken, requireAuthor } from '../middleware/auth.js';
 
@@ -13,6 +14,7 @@ const router = express.Router();
 // Upload routes (all use Cloudinary)
 router.post('/image', authenticateToken, requireAuthor, upload.single('image'), uploadImage);
 router.post('/images', authenticateToken, requireAuthor, upload.array('images', 10), uploadMultipleImages);
+router.post('/avatar', authenticateToken, upload.single('avatar'), uploadAvatar);
 router.post('/from-url', authenticateToken, requireAuthor, uploadFromUrl);
 
 // Delete routes (only Cloudinary)

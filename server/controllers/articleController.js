@@ -1,6 +1,21 @@
 import Article from '../models/Article.js';
 import User from '../models/User.js';
 import mongoose from 'mongoose';
+import { v2 as cloudinary } from 'cloudinary';
+
+// Helper function to extract public ID from Cloudinary URL
+const getPublicIdFromUrl = (url) => {
+  if (!url) return null;
+  
+  try {
+    // Match Cloudinary URL pattern and extract public ID
+    const match = url.match(/\/(?:v\d+\/)?([^\/]+\/[^\/]+)\.(?:jpg|jpeg|png|gif|webp|svg)$/i);
+    return match ? match[1] : null;
+  } catch (error) {
+    console.error('Error extracting public ID from URL:', error);
+    return null;
+  }
+};
 
 // @desc    Get all articles with filters and pagination
 // @route   GET /api/articles
@@ -369,6 +384,20 @@ const deleteArticle = async (req, res) => {
       return res.status(403).json({ 
         message: 'Access denied. You can only delete your own articles.' 
       });
+    }
+
+    // Delete the featured image from Cloudinary if it exists
+    if (article.featuredImage) {
+      try {
+        const publicId = getPublicIdFromUrl(article.featuredImage);
+        if (publicId) {
+          await cloudinary.uploader.destroy(publicId);
+          console.log(`Deleted image from Cloudinary: ${publicId}`);
+        }
+      } catch (cloudinaryError) {
+        console.warn('Failed to delete article image from Cloudinary:', cloudinaryError);
+        // Continue with article deletion even if image deletion fails
+      }
     }
 
     await Article.findByIdAndDelete(id);

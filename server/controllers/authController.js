@@ -193,7 +193,7 @@ const getMe = async (req, res) => {
 // @access  Private
 const updateProfile = async (req, res) => {
   try {
-    const { firstName, lastName, bio, username } = req.body;
+    const { firstName, lastName, bio, username, avatar } = req.body;
     const userId = req.user._id;
 
     // Check if username is taken by another user
@@ -215,6 +215,7 @@ const updateProfile = async (req, res) => {
     if (lastName) updateData.lastName = lastName;
     if (bio !== undefined) updateData.bio = bio;
     if (username) updateData.username = username;
+    if (avatar !== undefined) updateData.avatar = avatar;
 
     const user = await User.findByIdAndUpdate(
       userId,

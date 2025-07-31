@@ -4,7 +4,7 @@ import { AuthContext } from "../context/AuthContext";
 import { CATEGORIES } from "../utils/constants";
 import { AvatarDisplay } from "./ui";
 
-const Navbar = () => {
+const Sidebar = () => {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
@@ -58,7 +58,7 @@ const Navbar = () => {
     }
   }, [currentPage]);
 
-  // Add event listener for escape key to close sidebar
+  // Add event listener for escape key and outside clicks to close sidebar
   useEffect(() => {
     const handleEsc = (event) => {
       if (event.key === "Escape" && isSidebarOpen) {
@@ -66,11 +66,34 @@ const Navbar = () => {
       }
     };
 
-    window.addEventListener("keydown", handleEsc);
+    const handleClickOutside = (event) => {
+      // Check if sidebar is open and click is outside sidebar
+      if (isSidebarOpen) {
+        const sidebar = document.querySelector('[data-sidebar]');
+        const menuButton = document.querySelector('[data-menu-button]');
+        
+        if (sidebar && !sidebar.contains(event.target) && 
+            menuButton && !menuButton.contains(event.target)) {
+          // Small delay to prevent conflicts with button clicks
+          setTimeout(() => {
+            closeSidebar();
+          }, 10);
+        }
+      }
+    };
 
-    // Clean up event listener
+    // Only add listeners when sidebar is open
+    if (isSidebarOpen) {
+      window.addEventListener("keydown", handleEsc);
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("touchstart", handleClickOutside);
+    }
+
+    // Clean up event listeners
     return () => {
       window.removeEventListener("keydown", handleEsc);
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
     };
   }, [isSidebarOpen]);
 
@@ -82,6 +105,7 @@ const Navbar = () => {
           <div className="flex justify-between items-center h-16">
             {/* Menu Button */}
             <button
+              data-menu-button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
@@ -172,18 +196,24 @@ const Navbar = () => {
       {/* Sidebar Overlay */}
       {isSidebarOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black bg-opacity-50 z-40"
           onClick={() => {
             closeSidebar();
           }}
           aria-label="Close sidebar"
           role="button"
           tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              closeSidebar();
+            }
+          }}
         ></div>
       )}
 
       {/* Sidebar */}
       <div
+        data-sidebar
         className={`fixed top-0 left-0 h-full w-80 bg-white shadow-xl transform transition-transform duration-300 ease-in-out z-50 ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
@@ -506,4 +536,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;
+export default Sidebar;

@@ -29,7 +29,7 @@ const RegisterPage = () => {
       } else {
         toast.error(result.message || "Registration failed. Please try again.");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred. Please try again.");
     }
   };

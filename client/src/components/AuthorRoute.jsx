@@ -1,14 +1,14 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import LoadingSpinner from './ui/LoadingSpinner';
+import { SimpleLoader } from './ui';
 
 const AuthorRoute = ({ children }) => {
   const { user, isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-96">
-        <LoadingSpinner />
+      <div className="min-h-screen flex items-center justify-center">
+        <SimpleLoader size="lg" text="Verifying author access" showText={true} />
       </div>
     );
   }

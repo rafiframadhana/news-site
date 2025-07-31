@@ -6,7 +6,7 @@ import ScrollToTop from './components/ScrollToTop';
 
 // Pages
 import Home from './pages/Home';
-import ArticleDetail from './pages/ArticleDetail';
+import ArticlePage from './pages/ArticlePage';
 import CategoryPage from './pages/CategoryPage';
 
 // Auth Pages
@@ -34,7 +34,7 @@ import AboutPage from './pages/AboutPage';
 import NotFound from './pages/NotFound';
 
 // Components
-import Navbar from './components/Navbar';
+import Sidebar from './components/Sidebar';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import AuthorRoute from './components/AuthorRoute';
@@ -55,13 +55,13 @@ function App() {
       <AuthProvider>
         <Router>
           <ScrollToTop />
-          <div className="min-h-screen bg-gray-50">
-            <Navbar />
-            <main>
+          <div className="min-h-screen bg-gray-50 flex flex-col">
+            <Sidebar />
+            <main className="flex-1 min-h-screen">
               <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={<Home />} />
-                <Route path="/article/:slug" element={<ArticleDetail />} />
+                <Route path="/article/:slug" element={<ArticlePage />} />
                 <Route path="/category/:category" element={<CategoryPage />} />
                 <Route path="/author/:username" element={<AuthorPage />} />
                 <Route path="/authors" element={<AuthorsPage />} />

@@ -4,10 +4,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { FiEdit3, FiTrash2, FiEye, FiPlus, FiSearch, FiCalendar } from "react-icons/fi";
 import { articleService } from "../../services/articleService";
+import { uploadService } from "../../services/uploadService";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
-import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import { SimpleLoader } from "../../components/ui";
 import Badge from "../../components/ui/Badge";
 import { formatDate } from "date-fns";
 
@@ -70,12 +71,28 @@ const ArticlesList = () => {
     }
   );
 
-  const handleDeleteArticle = (articleId, articleTitle) => {
+  const handleDeleteArticle = async (articleId, articleTitle) => {
     if (
       window.confirm(
         `Are you sure you want to delete "${articleTitle}"? This action cannot be undone.`
       )
     ) {
+      // Find the article to get its featured image
+      const articleToDelete = articles.find(article => article._id === articleId);
+      
+      // Delete the featured image from Cloudinary if it exists
+      if (articleToDelete?.featuredImage) {
+        try {
+          const publicId = uploadService.getPublicIdFromUrl(articleToDelete.featuredImage);
+          if (publicId) {
+            await uploadService.deleteImage(publicId);
+          }
+        } catch (deleteError) {
+          console.warn('Failed to delete article image from Cloudinary:', deleteError);
+          // Continue with article deletion even if image deletion fails
+        }
+      }
+      
       deleteArticleMutation.mutate(articleId);
     }
   };
@@ -106,13 +123,13 @@ const ArticlesList = () => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-96">
-        <LoadingSpinner />
+        <SimpleLoader size="lg" text="Loading articles..." showText={true} />
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>

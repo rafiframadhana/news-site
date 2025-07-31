@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { FiGrid, FiList } from 'react-icons/fi';
 import { articleService } from '../services/articleService';
-import LoadingSpinner from '../components/ui/LoadingSpinner';
+import { CategoryPageSkeleton } from '../components/ui';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import ArticleCard from '../components/ArticleCard';
@@ -33,11 +33,7 @@ const CategoryPage = () => {
   );
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-96">
-        <LoadingSpinner />
-      </div>
-    );
+    return <CategoryPageSkeleton />;
   }
 
   const categoryDisplayName = category ? 

@@ -11,7 +11,7 @@ import {
   FiEdit,
 } from "react-icons/fi";
 import { userService } from "../services/userService";
-import LoadingSpinner from "../components/ui/LoadingSpinner";
+import { SimpleLoader, AvatarDisplay } from "../components/ui";
 import Card from "../components/ui/Card";
 import Input from "../components/ui/Input";
 import Badge from "../components/ui/Badge";
@@ -44,17 +44,8 @@ const AuthorsPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-center items-center h-64">
-            <div className="text-center">
-              <LoadingSpinner size="lg" />
-              <p className="mt-4 text-gray-600">
-                Loading our amazing authors...
-              </p>
-            </div>
-          </div>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <SimpleLoader size="lg" text="Loading our amazing authors" showText={true} />
       </div>
     );
   }
@@ -96,20 +87,11 @@ const AuthorsPage = () => {
       <Link to={`/author/${author.username}`} className="block p-6">
         {/* Author Avatar */}
         <div className="flex justify-center mb-4">
-          <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center text-white shadow-lg">
-            {author.avatar ? (
-              <img
-                src={author.avatar}
-                alt={author.fullName || author.username}
-                className="w-20 h-20 rounded-full object-cover"
-              />
-            ) : (
-              <span className="text-2xl font-semibold">
-                {author.firstName?.[0] || author.username?.[0]?.toUpperCase()}
-                {author.lastName?.[0]}
-              </span>
-            )}
-          </div>
+          <AvatarDisplay
+            avatar={author.avatar}
+            userInitials={`${author.firstName?.[0] || author.username?.[0]?.toUpperCase() || ''}${author.lastName?.[0] || ''}`}
+            size="xl"
+          />
         </div>
 
         {/* Author Info */}
@@ -164,20 +146,11 @@ const AuthorsPage = () => {
       <Link to={`/author/${author.username}`} className="block p-6">
         <div className="flex items-center space-x-4">
           {/* Author Avatar */}
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center text-white shadow-md flex-shrink-0">
-            {author.avatar ? (
-              <img
-                src={author.avatar}
-                alt={author.fullName || author.username}
-                className="w-16 h-16 rounded-full object-cover"
-              />
-            ) : (
-              <span className="text-lg font-semibold">
-                {author.firstName?.[0] || author.username?.[0]?.toUpperCase()}
-                {author.lastName?.[0]}
-              </span>
-            )}
-          </div>
+          <AvatarDisplay
+            avatar={author.avatar}
+            userInitials={`${author.firstName?.[0] || author.username?.[0]?.toUpperCase() || ''}${author.lastName?.[0] || ''}`}
+            size="lg"
+          />
 
           {/* Author Info */}
           <div className="flex-1 min-w-0">

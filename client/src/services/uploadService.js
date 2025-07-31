@@ -75,7 +75,6 @@ export const uploadService = {
     }
     
     try {
-      // Extract public ID from Cloudinary URL
       // Example: https://res.cloudinary.com/cloudname/image/upload/v1234567890/folder/image.jpg
       const urlParts = cloudinaryUrl.split('/');
       const uploadIndex = urlParts.indexOf('upload');
@@ -99,5 +98,15 @@ export const uploadService = {
       console.error('Error extracting public ID from Cloudinary URL:', error);
       return null;
     }
+  },
+
+  // Upload avatar image to Cloudinary
+  uploadAvatar: async (formData) => {
+    const response = await axios.post(`${API_BASE_URL}/api/upload/avatar`, formData, {
+      headers: getAuthHeaders({
+        'Content-Type': 'multipart/form-data'
+      }),
+    });
+    return response.data;
   }
 };
