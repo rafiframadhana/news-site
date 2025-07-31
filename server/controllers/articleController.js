@@ -22,9 +22,6 @@ const getPublicIdFromUrl = (url) => {
 // @access  Public
 const getArticles = async (req, res) => {
   try {
-    console.log('getArticles called with query:', req.query);
-    console.log('getArticles user:', req.user ? { _id: req.user._id, role: req.user.role } : 'No user');
-    
     const {
       page = 1,
       limit = 10,
@@ -46,32 +43,19 @@ const getArticles = async (req, res) => {
     // 2. User is requesting their own articles
     const isRequestingOwnArticles = req.user && author && author === req.user._id.toString();
     
-    console.log('getArticles filtering logic:');
-    console.log('- author parameter:', author);
-    console.log('- user._id:', req.user ? req.user._id.toString() : 'No user');
-    console.log('- isRequestingOwnArticles:', isRequestingOwnArticles);
-    console.log('- user role:', req.user ? req.user.role : 'No user');
-    console.log('- status parameter:', status);
-    
     if (!req.user || (!isRequestingOwnArticles && req.user.role !== 'admin' && req.user.role !== 'author')) {
       filter.status = 'published';
-      console.log('- Applied status filter: published (public access)');
     } else if (status && !isRequestingOwnArticles) {
       // Only apply status filter if NOT requesting own articles
       filter.status = status;
-      console.log('- Applied status filter from params:', status);
-    } else if (isRequestingOwnArticles) {
-      console.log('- No status filter applied (user requesting own articles)');
-    } else {
+    } else if (!isRequestingOwnArticles) {
       // Admin/author but no specific status requested
       filter.status = status || 'published';
-      console.log('- Applied default status filter:', filter.status);
     }
 
     if (category) filter.category = category;
     if (author) filter.author = author;
     
-    console.log('- Final filter:', filter);
     if (featured !== undefined) filter.featured = featured === 'true';
     
     if (tags) {
@@ -101,15 +85,6 @@ const getArticles = async (req, res) => {
       .skip(skip)
       .limit(parseInt(limit))
       .lean();
-
-    console.log('getArticles query result:');
-    console.log('- Found articles count:', articles.length);
-    console.log('- Articles:', articles.map(a => ({ 
-      title: a.title, 
-      status: a.status, 
-      author: a.author._id.toString(),
-      views: a.views 
-    })));
 
     // Get total count for pagination
     const total = await Article.countDocuments(filter);
@@ -146,21 +121,15 @@ const getArticleBySlug = async (req, res) => {
   try {
     const { slug, id } = req.params;
     
-    console.log('getArticleBySlug called with params:', { slug, id });
-    console.log('User in request:', req.user ? { id: req.user._id, role: req.user.role } : 'No user');
-    
     let query;
     if (id) {
       // If accessing via /id/:id route
-      console.log('Fetching article by ID:', id);
       query = { _id: id };
     } else {
       // If accessing via /:slug route, check if slug looks like an ObjectId
       if (mongoose.Types.ObjectId.isValid(slug) && slug.length === 24) {
-        console.log('Slug looks like an ObjectId, fetching by ID:', slug);
         query = { _id: slug };
       } else {
-        console.log('Fetching article by slug:', slug);
         query = { slug };
       }
     }
@@ -175,14 +144,6 @@ const getArticleBySlug = async (req, res) => {
 
     // Check if article is published or user has access
     if (article.status !== 'published') {
-      console.log('Draft article access check:', {
-        hasUser: !!req.user,
-        userRole: req.user?.role,
-        userId: req.user?._id?.toString(),
-        articleAuthorId: article.author._id?.toString(),
-        articleStatus: article.status
-      });
-      
       if (!req.user) {
         return res.status(401).json({ message: 'Authentication required to access draft articles' });
       } else if (req.user.role !== 'admin' && 
@@ -223,8 +184,6 @@ const createArticle = async (req, res) => {
       seoTitle,
       seoDescription
     } = req.body;
-
-    console.log('Creating article with data:', JSON.stringify(req.body, null, 2));
 
     // Validate required fields
     if (!title || !content || !category) {
@@ -299,9 +258,6 @@ const updateArticle = async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
-
-    console.log('Updating article with ID:', id);
-    console.log('Update data received:', JSON.stringify(updateData, null, 2));
 
     const article = await Article.findById(id);
 
@@ -392,10 +348,14 @@ const deleteArticle = async (req, res) => {
         const publicId = getPublicIdFromUrl(article.featuredImage);
         if (publicId) {
           await cloudinary.uploader.destroy(publicId);
-          console.log(`Deleted image from Cloudinary: ${publicId}`);
+          if (process.env.NODE_ENV === 'development') {
+            console.log(`Deleted image from Cloudinary: ${publicId}`);
+          }
         }
       } catch (cloudinaryError) {
-        console.warn('Failed to delete article image from Cloudinary:', cloudinaryError);
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Failed to delete article image from Cloudinary:', cloudinaryError);
+        }
         // Continue with article deletion even if image deletion fails
       }
     }

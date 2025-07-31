@@ -2,21 +2,15 @@ import passport from 'passport';
 
 // Authenticate user with JWT
 const authenticateToken = (req, res, next) => {
-  console.log('authenticateToken called for:', req.method, req.path);
-  console.log('Authorization header:', req.headers.authorization);
-  
   passport.authenticate('jwt', { session: false }, (err, user, info) => {
     if (err) {
-      console.log('Auth error:', err);
       return res.status(500).json({ message: 'Authentication error', error: err.message });
     }
     
     if (!user) {
-      console.log('No user found, info:', info);
       return res.status(401).json({ message: 'Access denied. Invalid token.' });
     }
     
-    console.log('Auth successful for user:', { _id: user._id, role: user.role });
     req.user = user;
     next();
   })(req, res, next);
@@ -24,22 +18,9 @@ const authenticateToken = (req, res, next) => {
 
 // Optional authentication - sets req.user if token is valid, but doesn't block if not
 const optionalAuth = (req, res, next) => {
-  console.log('optionalAuth called for:', req.method, req.path);
-  console.log('Authorization header:', req.headers.authorization);
-  
   passport.authenticate('jwt', { session: false }, (err, user, info) => {
-    if (err) {
-      console.log('Optional auth error:', err);
-    } else if (user) {
-      console.log('Optional auth successful for user:', { _id: user._id, role: user.role });
+    if (user) {
       req.user = user;
-    } else {
-      console.log('No user in optional auth, info:', info);
-      console.log('Request path:', req.path);
-      console.log('Request params:', req.params);
-      console.log('Authorization header format check:', req.headers.authorization ? 
-        `Starts with Bearer: ${req.headers.authorization.startsWith('Bearer ')}` : 
-        'No Authorization header');
     }
     next(); // Always continue, even if no user
   })(req, res, next);

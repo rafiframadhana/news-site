@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
@@ -8,7 +8,7 @@ import { uploadService } from "../../services/uploadService";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
-import { SimpleLoader } from "../../components/ui";
+import { SimpleLoader, Pagination } from "../../components/ui";
 import Badge from "../../components/ui/Badge";
 import { formatDate } from "date-fns";
 
@@ -18,10 +18,12 @@ const ArticlesList = () => {
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterAuthor, setFilterAuthor] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const articlesPerPage = 10;
 
   const { data: articlesData, isLoading } = useQuery({
     queryKey: ["articles", "admin"],
-    queryFn: () => articleService.getArticles(), // Fetch ALL articles for admin
+    queryFn: () => articleService.getArticles({ limit: 100 }), // Fetch up to 100 articles for admin
   });
 
   const articles = articlesData?.articles || [];
@@ -70,6 +72,28 @@ const ArticlesList = () => {
       return matchesSearch && matchesStatus && matchesCategory && matchesAuthor;
     }
   );
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredArticles.length / articlesPerPage);
+  const startIndex = (currentPage - 1) * articlesPerPage;
+  const paginatedArticles = filteredArticles.slice(startIndex, startIndex + articlesPerPage);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    // Use setTimeout to ensure the page change happens first, then scroll
+    setTimeout(() => {
+      // Scroll to the top of the page
+      window.scrollTo({ 
+        top: 0,
+        behavior: 'smooth'
+      });
+    }, 50);
+  };
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterStatus, filterCategory, filterAuthor]);
 
   const handleDeleteArticle = async (articleId, articleTitle) => {
     if (
@@ -197,145 +221,164 @@ const ArticlesList = () => {
 
           {/* Results Count */}
           <div className="flex items-center text-sm text-gray-500">
-            Showing {filteredArticles.length} of {articles.length} articles
+            Showing {paginatedArticles.length} of {filteredArticles.length} articles
+            {filteredArticles.length !== articles.length && (
+              <span> (filtered from {articles.length} total)</span>
+            )}
           </div>
         </div>
       </Card>
 
       {/* Articles List */}
-      {filteredArticles.length > 0 ? (
-        <div className="space-y-4">
-          {filteredArticles.map((article) => (
-            <Card key={article._id} className="p-6">
-              <div className="block sm:flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      {article.title}
-                    </h3>
-                  </div>
+      <div id="articles-section">
+        {filteredArticles.length > 0 ? (
+          <>
+            <div className="space-y-4">
+              {paginatedArticles.map((article) => (
+                <Card key={article._id} className="p-6">
+                  <div className="block sm:flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          {article.title}
+                        </h3>
+                      </div>
 
-                  <div className="mb-2 flex items-center gap-2">
-                    <Badge variant={getStatusBadgeVariant(article.status)}>
-                      {toCapitalCase(article.status)}
-                    </Badge>
-                    {article.featured && <Badge variant="warning">Featured</Badge>}
-                  </div>
+                      <div className="mb-2 flex items-center gap-2">
+                        <Badge variant={getStatusBadgeVariant(article.status)}>
+                          {toCapitalCase(article.status)}
+                        </Badge>
+                        {article.featured && <Badge variant="warning">Featured</Badge>}
+                      </div>
 
-                  {article.excerpt && (
-                    <p className="text-gray-600 mb-3 line-clamp-2">
-                      {article.excerpt}
-                    </p>
-                  )}
+                      {article.excerpt && (
+                        <p className="text-gray-600 mb-3 line-clamp-2">
+                          {article.excerpt}
+                        </p>
+                      )}
 
-                  <div className="flex items-center gap-6 text-sm text-gray-500">
-                    <span className="font-medium">
-                      Author:
-                      <Link
-                        to={`/author/${article.author?.username}`}
-                        className="ml-1 text-blue-600 hover:underline"
-                      >
-                        {article.author?.firstName +
-                          " " +
-                          article.author?.lastName || "Unknown Author"}
-                      </Link>
-                    </span>
-                    <span>
-                      Category:{" "}
-                      <span className="font-medium">
-                        {toCapitalCase(article.category)}
-                      </span>
-                    </span>
-                    <span className="font-medium flex items-center gap-1">
-                      <FiCalendar className="inline w-4 h-4 mr-1" />
-                      {formatDate(new Date(article.createdAt), "MMM dd, yyyy")}
-                    </span>
-                    <span className="flex items-center gap-1 text-center">
-                      <FiEye className="w-4 h-4" />
-                      {article.views || 0}
-                    </span>
-                  </div>
-
-                  {article.tags && article.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      {article.tags.map((tag, index) => (
-                        <span
-                          key={index}
-                          className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded"
-                        >
-                          {tag}
+                      <div className="flex items-center gap-6 text-sm text-gray-500">
+                        <span className="font-medium">
+                          Author:
+                          <Link
+                            to={`/author/${article.author?.username}`}
+                            className="ml-1 text-blue-600 hover:underline"
+                          >
+                            {article.author?.firstName +
+                              " " +
+                              article.author?.lastName || "Unknown Author"}
+                          </Link>
                         </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                        <span>
+                          Category:{" "}
+                          <span className="font-medium">
+                            {toCapitalCase(article.category)}
+                          </span>
+                        </span>
+                        <span className="font-medium flex items-center gap-1">
+                          <FiCalendar className="inline w-4 h-4 mr-1" />
+                          {formatDate(new Date(article.createdAt), "MMM dd, yyyy")}
+                        </span>
+                        <span className="flex items-center gap-1 text-center">
+                          <FiEye className="w-4 h-4" />
+                          {article.views || 0}
+                        </span>
+                      </div>
 
-                <div className="flex items-center gap-2 sm:ml-6 mt-5 sm:mt-0">
-                  {article.status === "published" && (
-                    <Link to={`/article/${article.slug}`} target="_blank">
+                      {article.tags && article.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-3">
+                          {article.tags.map((tag, index) => (
+                            <span
+                              key={index}
+                              className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2 sm:ml-6 mt-5 sm:mt-0">
+                      {article.status === "published" && (
+                        <Link to={`/article/${article.slug}`} target="_blank">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex items-center gap-1"
+                          >
+                            <FiEye className="w-4 h-4" />
+                            View
+                          </Button>
+                        </Link>
+                      )}
+
+                      <Link to={`/author/articles/edit/${article._id}`}>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex items-center gap-1"
+                        >
+                          <FiEdit3 className="w-4 h-4" />
+                          Edit
+                        </Button>
+                      </Link>
+
                       <Button
                         variant="outline"
                         size="sm"
-                        className="flex items-center gap-1"
+                        className="flex items-center gap-1 text-red-600 hover:text-red-700 hover:border-red-300"
+                        onClick={() =>
+                          handleDeleteArticle(article._id, article.title)
+                        }
+                        disabled={deleteArticleMutation.isPending}
                       >
-                        <FiEye className="w-4 h-4" />
-                        View
+                        <FiTrash2 className="w-4 h-4" />
+                        Delete
                       </Button>
-                    </Link>
-                  )}
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
 
-                  <Link to={`/author/articles/edit/${article._id}`}>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center gap-1"
-                    >
-                      <FiEdit3 className="w-4 h-4" />
-                      Edit
-                    </Button>
-                  </Link>
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center gap-1 text-red-600 hover:text-red-700 hover:border-red-300"
-                    onClick={() =>
-                      handleDeleteArticle(article._id, article.title)
-                    }
-                    disabled={deleteArticleMutation.isPending}
-                  >
-                    <FiTrash2 className="w-4 h-4" />
-                    Delete
-                  </Button>
-                </div>
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-8">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                  className="justify-center"
+                />
               </div>
-            </Card>
-          ))}
-        </div>
-      ) : (
-        <Card className="p-12 text-center">
-          <div className="text-gray-500">
-            {searchTerm ||
-            filterStatus !== "all" ||
-            filterCategory !== "all" ? (
-              <>
-                <p className="text-lg mb-2">No articles found</p>
-                <p>Try adjusting your search criteria or filters</p>
-              </>
-            ) : (
-              <>
-                <p className="text-lg mb-2">No articles yet</p>
-                <p className="mb-4">
-                  Get started by creating your first article
-                </p>
-                <Link to="/author/articles/create">
-                  <Button>Create Article</Button>
-                </Link>
-              </>
             )}
-          </div>
-        </Card>
-      )}
+          </>
+        ) : (
+          <Card className="p-12 text-center">
+            <div className="text-gray-500">
+              {searchTerm ||
+              filterStatus !== "all" ||
+              filterCategory !== "all" ? (
+                <>
+                  <p className="text-lg mb-2">No articles found</p>
+                  <p>Try adjusting your search criteria or filters</p>
+                </>
+              ) : (
+                <>
+                  <p className="text-lg mb-2">No articles yet</p>
+                  <p className="mb-4">
+                    Get started by creating your first article
+                  </p>
+                  <Link to="/author/articles/create">
+                    <Button>Create Article</Button>
+                  </Link>
+                </>
+              )}
+            </div>
+          </Card>
+        )}
+      </div>
     </div>
   );
 };

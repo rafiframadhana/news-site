@@ -65,7 +65,9 @@ const register = async (req, res) => {
           }
         }
       } catch (error) {
-        console.error('Email verification error:', error);
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Email verification error:', error);
+        }
         // Continue with registration even if verification fails
         // This prevents the API from blocking legitimate users if verification fails
       }
@@ -104,10 +106,12 @@ const register = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Registration error:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Registration error:', error);
+    }
     res.status(500).json({
       message: 'Server error during registration',
-      error: process.env.NODE_ENV === 'development' ? error.message : {}
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
     });
   }
 };

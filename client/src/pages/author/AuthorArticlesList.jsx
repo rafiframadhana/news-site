@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import {
@@ -16,7 +16,7 @@ import { uploadService } from "../../services/uploadService";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
-import { SimpleLoader } from "../../components/ui";
+import { SimpleLoader, Pagination } from "../../components/ui";
 import { formatDate } from "date-fns";
 
 const AuthorArticlesList = () => {
@@ -26,11 +26,13 @@ const AuthorArticlesList = () => {
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const articlesPerPage = 10;
 
   // Fetch author's articles
   const { data: articlesData, isLoading } = useQuery({
     queryKey: ["articles", "author", userId],
-    queryFn: () => articleService.getArticlesByAuthor(userId),
+    queryFn: () => articleService.getArticlesByAuthor(userId, { limit: 100 }), // Fetch up to 100 articles
     enabled: !!userId,
   });
 
@@ -52,6 +54,28 @@ const AuthorArticlesList = () => {
 
     return matchesSearch && matchesStatus;
   });
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredArticles.length / articlesPerPage);
+  const startIndex = (currentPage - 1) * articlesPerPage;
+  const paginatedArticles = filteredArticles.slice(startIndex, startIndex + articlesPerPage);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    // Use setTimeout to ensure the page change happens first, then scroll
+    setTimeout(() => {
+      // Scroll to the top of the page
+      window.scrollTo({ 
+        top: 0,
+        behavior: 'smooth'
+      });
+    }, 50);
+  };
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, statusFilter]);
 
   // Delete article mutation
   const deleteArticleMutation = useMutation({
@@ -156,7 +180,7 @@ const AuthorArticlesList = () => {
       </Card>
 
       {/* Articles List */}
-      <Card className="p-6">
+      <Card id="articles-section" className="p-6">
         {filteredArticles.length === 0 ? (
           <div className="text-center py-8">
             <FiEdit3 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -182,101 +206,118 @@ const AuthorArticlesList = () => {
             )}
           </div>
         ) : (
-          <div className="space-y-4">
-            {filteredArticles.map((article) => (
-              <div
-                key={article._id}
-                className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
-              >
-                <div className="flex-1">
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    {article.title}
-                  </h3>
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        article.status === "published"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-yellow-100 text-yellow-800"
-                      }`}
-                    >
-                      {toCapitalCase(article.status)}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <FiEye className="w-3 h-3" />
-                      {article.views || 0}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      Category:{" "}
-                      <span className="font-medium">
-                        {toCapitalCase(article.category)}
+          <>
+            <div className="space-y-4">
+              {paginatedArticles.map((article) => (
+                <div
+                  key={article._id}
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
+                >
+                  <div className="flex-1">
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      {article.title}
+                    </h3>
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          article.status === "published"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-yellow-100 text-yellow-800"
+                        }`}
+                      >
+                        {toCapitalCase(article.status)}
                       </span>
-                    </span>
-                    <span className="flex items-center gap-2">
-                      Updated:{" "}
-                      <span className="gap-1 flex items-center font-medium">
-                        <FiCalendar className="w-3 h-3" />
-                        {formatDate(
-                          new Date(article.updatedAt),
-                          "MMM dd, yyyy"
-                        )}
+                      <span className="flex items-center gap-1">
+                        <FiEye className="w-3 h-3" />
+                        {article.views || 0}
                       </span>
-                    </span>
+                      <span className="flex items-center gap-1">
+                        Category:{" "}
+                        <span className="font-medium">
+                          {toCapitalCase(article.category)}
+                        </span>
+                      </span>
+                      <span className="flex items-center gap-2">
+                        Updated:{" "}
+                        <span className="gap-1 flex items-center font-medium">
+                          <FiCalendar className="w-3 h-3" />
+                          {formatDate(
+                            new Date(article.updatedAt),
+                            "MMM dd, yyyy"
+                          )}
+                        </span>
+                      </span>
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex items-center space-x-2 mt-4 sm:mt-0">
-                  <Button
-                    as="a"
-                    onClick={() =>
-                      (window.location.href = `/author/articles/edit/${article._id}`)
-                    }
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center gap-1"
-                  >
-                    <FiEdit3 className="w-3 h-3" />
-                    Edit
-                  </Button>
-
-                  {article.status === "published" && (
+                  <div className="flex items-center space-x-2 mt-4 sm:mt-0">
                     <Button
                       as="a"
                       onClick={() =>
-                        (window.location.href = `/article/${article.slug}`)
+                        (window.location.href = `/author/articles/edit/${article._id}`)
                       }
                       variant="outline"
                       size="sm"
                       className="flex items-center gap-1"
                     >
-                      <FiEye className="w-3 h-3" />
-                      View
+                      <FiEdit3 className="w-3 h-3" />
+                      Edit
                     </Button>
-                  )}
 
-                  <Button
-                    onClick={() =>
-                      handleDeleteArticle(article._id, article.title)
-                    }
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center gap-1 text-red-600 hover:text-red-700 hover:border-red-300"
-                    disabled={deleteArticleMutation.isPending}
-                  >
-                    <FiTrash2 className="w-3 h-3" />
-                    Delete
-                  </Button>
+                    {article.status === "published" && (
+                      <Button
+                        as="a"
+                        onClick={() =>
+                          (window.location.href = `/article/${article.slug}`)
+                        }
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center gap-1"
+                      >
+                        <FiEye className="w-3 h-3" />
+                        View
+                      </Button>
+                    )}
+
+                    <Button
+                      onClick={() =>
+                        handleDeleteArticle(article._id, article.title)
+                      }
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-1 text-red-600 hover:text-red-700 hover:border-red-300"
+                      disabled={deleteArticleMutation.isPending}
+                    >
+                      <FiTrash2 className="w-3 h-3" />
+                      Delete
+                    </Button>
+                  </div>
                 </div>
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-8">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                  className="justify-center"
+                />
               </div>
-            ))}
-          </div>
+            )}
+          </>
         )}
       </Card>
 
       {/* Summary */}
       {filteredArticles.length > 0 && (
         <div className="mt-6 text-sm text-gray-500 text-center">
-          Showing {filteredArticles.length} of {articles.length} articles
+          Showing {paginatedArticles.length} of {filteredArticles.length} articles
+          {filteredArticles.length !== articles.length && (
+            <span> (filtered from {articles.length} total)</span>
+          )}
         </div>
       )}
     </div>

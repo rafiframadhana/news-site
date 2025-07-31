@@ -5,7 +5,7 @@ import { api } from "../services/api";
 import { format } from "date-fns";
 import DOMPurify from "dompurify";
 import { CATEGORIES, getCategoryLabel } from "../utils/constants";
-import { SimpleLoader, FeaturedArticleSkeleton, CardSkeleton } from "../components/ui";
+import { SimpleLoader, FeaturedArticleSkeleton, CardSkeleton, Pagination } from "../components/ui";
 import Card from "../components/ui/Card";
 import Badge from "../components/ui/Badge";
 
@@ -16,6 +16,8 @@ const Home = () => {
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
   const [isSwipping, setIsSwipping] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const articlesPerPage = 9;
 
   // Featured articles for hero slider
   const { data: featuredArticlesData, isLoading: featuredLoading } = useQuery({
@@ -42,15 +44,37 @@ const Home = () => {
         search: searchTerm,
         category: selectedCategory,
         status: "published",
-        limit: 12,
+        limit: 100, // Fetch more articles for pagination
       }),
   });
 
   // Static categories for now (can be replaced with API call later)
   const categories = CATEGORIES;
 
-  const articles = articlesData?.data?.articles || [];
+  const allArticles = articlesData?.data?.articles || [];
   const featuredArticles = featuredArticlesData?.data?.articles || [];
+
+  // Pagination logic for articles
+  const totalPages = Math.ceil(allArticles.length / articlesPerPage);
+  const startIndex = (currentPage - 1) * articlesPerPage;
+  const articles = allArticles.slice(startIndex, startIndex + articlesPerPage);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    // Use setTimeout to ensure the page change happens first, then scroll
+    setTimeout(() => {
+      // Scroll to Latest Topics section
+      document.getElementById('latest-topics-section')?.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }, 50);
+  };
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCategory]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -304,12 +328,12 @@ const Home = () => {
       </section>
 
       {/* Search and Filter Section */}
-      <section className="bg-gray-50 max-w-7xl mx-auto px-4 sm:px-6">
+      <section id="latest-topics-section" className="bg-gray-50 max-w-7xl mx-auto px-4 sm:px-6">
         <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 sm:mb-6">
           Latest Topics
-          {!articlesLoading && articles.length > 0 && (
+          {!articlesLoading && allArticles.length > 0 && (
             <span className="text-lg font-normal text-gray-600 ml-2">
-              ({articles.length} article{articles.length !== 1 ? 's' : ''})
+              ({allArticles.length} article{allArticles.length !== 1 ? 's' : ''})
             </span>
           )}
         </h2>
@@ -363,14 +387,14 @@ const Home = () => {
       </section>
 
       {/* Articles Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
+      <section id="articles-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
         {articlesLoading ? (
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, index) => (
               <CardSkeleton key={index} />
             ))}
           </div>
-        ) : articles.length === 0 ? (
+        ) : allArticles.length === 0 ? (
           <div className="text-center py-12">
             <h3 className="text-lg font-medium text-gray-900 mb-2">
               No articles found
@@ -378,76 +402,90 @@ const Home = () => {
             <p className="text-gray-600">Try adjusting your search criteria.</p>
           </div>
         ) : (
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {articles.map((article) => (
-              <Card
-                key={article._id}
-                className="overflow-hidden hover:shadow-lg transition-shadow"
-              >
-                {article.featuredImage && (
-                  <div className="aspect-w-16 aspect-h-9">
-                    <img
-                      src={article.featuredImage}
-                      alt={article.title}
-                      className="w-full h-48 object-cover"
-                    />
-                  </div>
-                )}
-
-                <Card.Content className="px-6 pt-3 sm:pt-1 pb-6">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2 mb-2">
-                      {article.category && (
-                        <Badge variant="info" size="sm" className="!px-0">
-                          {getCategoryLabel(article.category)}
-                        </Badge>
-                      )}
-                      {article.featured && (
-                        <Badge variant="warning" size="sm">
-                          Featured
-                        </Badge>
-                      )}
+          <>
+            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+              {articles.map((article) => (
+                <Card
+                  key={article._id}
+                  className="overflow-hidden hover:shadow-lg transition-shadow"
+                >
+                  {article.featuredImage && (
+                    <div className="aspect-w-16 aspect-h-9">
+                      <img
+                        src={article.featuredImage}
+                        alt={article.title}
+                        className="w-full h-48 object-cover"
+                      />
                     </div>
-                    <span className="text-sm text-gray-500">
-                      {format(
-                        new Date(article.publishedAt || article.createdAt),
-                        "MMM dd, yyyy"
-                      )}
-                    </span>
-                  </div>
+                  )}
 
-                  <h3 className="text-xl font-semibold text-gray-900 mb-3 line-clamp-2">
-                    <Link
-                      to={`/article/${article.slug}`}
-                      className="hover:text-primary-600 transition-colors"
-                    >
-                      {article.title}
-                    </Link>
-                  </h3>
-
-                  <p className="text-gray-600 mb-4 line-clamp-3">
-                    {truncateContent(article.excerpt)}
-                  </p>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-500">By</span>
-                      <span className="text-sm font-medium text-gray-900">
-                        {article.author?.firstName || "Anonymous"}
+                  <Card.Content className="px-6 pt-3 sm:pt-1 pb-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        {article.category && (
+                          <Badge variant="info" size="sm" className="!px-0">
+                            {getCategoryLabel(article.category)}
+                          </Badge>
+                        )}
+                        {article.featured && (
+                          <Badge variant="warning" size="sm">
+                            Featured
+                          </Badge>
+                        )}
+                      </div>
+                      <span className="text-sm text-gray-500">
+                        {format(
+                          new Date(article.publishedAt || article.createdAt),
+                          "MMM dd, yyyy"
+                        )}
                       </span>
                     </div>
 
-                    <Link
-                      to={`/article/${article.slug}`}
-                      className="text-primary-600 hover:text-primary-700 text-sm font-medium transition-colors"
-                    >
-                      Read more →
-                    </Link>
-                  </div>
-                </Card.Content>
-              </Card>
-            ))}
-          </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-3 line-clamp-2">
+                      <Link
+                        to={`/article/${article.slug}`}
+                        className="hover:text-primary-600 transition-colors"
+                      >
+                        {article.title}
+                      </Link>
+                    </h3>
+
+                    <p className="text-gray-600 mb-4 line-clamp-3">
+                      {truncateContent(article.excerpt)}
+                    </p>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-gray-500">By</span>
+                        <span className="text-sm font-medium text-gray-900">
+                          {article.author?.firstName || "Anonymous"}
+                        </span>
+                      </div>
+
+                      <Link
+                        to={`/article/${article.slug}`}
+                        className="text-primary-600 hover:text-primary-700 text-sm font-medium transition-colors"
+                      >
+                        Read more →
+                      </Link>
+                    </div>
+                  </Card.Content>
+                </Card>
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-12">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                  className="justify-center"
+                />
+              </div>
+            )}
+          </>
         )}
       </section>
     </div>

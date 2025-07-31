@@ -37,14 +37,15 @@ const connectToDatabase = async () => {
     
     // Validate Cloudinary configuration
     const cloudinaryValid = await validateCloudinary();
-    if (!cloudinaryValid) {
-      console.error('❌ Cloudinary configuration invalid');
-      // Don't exit process in serverless environment
+    if (!cloudinaryValid && process.env.NODE_ENV !== 'production') {
+      console.warn('⚠️ Cloudinary configuration invalid');
     }
   } catch (error) {
     console.error('❌ Database connection error:', error.message);
     isConnected = false;
-    // Don't exit process in serverless environment
+    if (process.env.NODE_ENV !== 'production') {
+      throw error;
+    }
   }
 };
 
@@ -54,16 +55,18 @@ const app = express();
 app.use(cors({
   origin: [
     process.env.CLIENT_URL,
-    'http://localhost:3000',
-    'http://localhost:5173',
-    'http://localhost:5174',
-    'http://localhost:5175',
-    'http://localhost:5176',
+    ...(process.env.NODE_ENV !== 'production' ? [
+      'http://localhost:3000',
+      'http://localhost:5173',
+      'http://localhost:5174',
+      'http://localhost:5175',
+      'http://localhost:5176',
+    ] : []),
     /\.trycloudflare\.com$/,
   ].filter(Boolean),
   credentials: true
 }));
-app.use(morgan('dev'));
+app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(passport.initialize());
@@ -77,9 +80,6 @@ app.use('/api/upload', uploadRoutes);
 // Categories endpoint
 app.get('/api/categories', async (req, res) => {
   try {
-    // Import Article model dynamically
-    const Article = (await import('./models/Article.js')).default;
-    
     // Define predefined categories with metadata
     const predefinedCategories = [
       { name: 'Technology', slug: 'technology', description: 'Latest tech news and innovations' },
@@ -102,7 +102,7 @@ app.get('/api/categories', async (req, res) => {
     console.error('Get categories error:', error);
     res.status(500).json({
       message: 'Failed to fetch categories',
-      error: process.env.NODE_ENV === 'development' ? error.message : {}
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
     });
   }
 });
@@ -117,7 +117,7 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ 
     message: 'Something went wrong!',
-    error: process.env.NODE_ENV === 'development' ? err.message : {}
+    error: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error'
   });
 });
 
@@ -134,9 +134,11 @@ if (process.env.NODE_ENV !== 'production') {
       
       const PORT = process.env.PORT || 5000;
       app.listen(PORT, () => {
-        console.log(`📍 Environment: ${process.env.NODE_ENV}`);
-        console.log('📸 Image uploads configured for Cloudinary only');
-        console.log(`🚀 Server running on port ${PORT}`);
+        if (process.env.NODE_ENV !== 'production') {
+          console.log(`📍 Environment: ${process.env.NODE_ENV}`);
+          console.log('📸 Image uploads configured for Cloudinary only');
+          console.log(`🚀 Server running on port ${PORT}`);
+        }
       });
     } catch (error) {
       console.error('❌ Server startup failed:', error.message);

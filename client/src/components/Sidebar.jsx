@@ -13,6 +13,8 @@ const Sidebar = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
+  const [isQuickActionsOpen, setIsQuickActionsOpen] = useState(false);
 
   // Check if we're currently on a category page
   const currentCategory = location.pathname.startsWith('/category/') 
@@ -52,13 +54,21 @@ const Sidebar = () => {
 
   // Close menu dropdown if user is not on a menu page
   useEffect(() => {
-    const menuPages = ['/', '/authors', '/about', '/contact', '/profile', '/admin/dashboard'];
+    const menuPages = ['/', '/authors', '/about', '/contact', '/profile'];
     if (!menuPages.includes(currentPage)) {
       setIsMenuOpen(false);
     }
   }, [currentPage]);
 
-  // Add event listener for escape key and outside clicks to close sidebar
+  // Close admin menu dropdown if user is not on an admin page
+  useEffect(() => {
+    const adminPages = ['/admin/dashboard', '/admin/articles', '/admin/users'];
+    if (!adminPages.includes(currentPage)) {
+      setIsAdminMenuOpen(false);
+    }
+  }, [currentPage]);
+
+  // Add event listener for escape key to close sidebar
   useEffect(() => {
     const handleEsc = (event) => {
       if (event.key === "Escape" && isSidebarOpen) {
@@ -66,34 +76,11 @@ const Sidebar = () => {
       }
     };
 
-    const handleClickOutside = (event) => {
-      // Check if sidebar is open and click is outside sidebar
-      if (isSidebarOpen) {
-        const sidebar = document.querySelector('[data-sidebar]');
-        const menuButton = document.querySelector('[data-menu-button]');
-        
-        if (sidebar && !sidebar.contains(event.target) && 
-            menuButton && !menuButton.contains(event.target)) {
-          // Small delay to prevent conflicts with button clicks
-          setTimeout(() => {
-            closeSidebar();
-          }, 10);
-        }
-      }
-    };
+    window.addEventListener("keydown", handleEsc);
 
-    // Only add listeners when sidebar is open
-    if (isSidebarOpen) {
-      window.addEventListener("keydown", handleEsc);
-      document.addEventListener("mousedown", handleClickOutside);
-      document.addEventListener("touchstart", handleClickOutside);
-    }
-
-    // Clean up event listeners
+    // Clean up event listener
     return () => {
       window.removeEventListener("keydown", handleEsc);
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("touchstart", handleClickOutside);
     };
   }, [isSidebarOpen]);
 
@@ -105,7 +92,6 @@ const Sidebar = () => {
           <div className="flex justify-between items-center h-16">
             {/* Menu Button */}
             <button
-              data-menu-button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
@@ -197,9 +183,7 @@ const Sidebar = () => {
       {isSidebarOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40"
-          onClick={() => {
-            closeSidebar();
-          }}
+          onClick={closeSidebar}
           aria-label="Close sidebar"
           role="button"
           tabIndex={0}
@@ -213,7 +197,6 @@ const Sidebar = () => {
 
       {/* Sidebar */}
       <div
-        data-sidebar
         className={`fixed top-0 left-0 h-full w-80 bg-white shadow-xl transform transition-transform duration-300 ease-in-out z-50 ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
@@ -258,7 +241,11 @@ const Sidebar = () => {
           {/* User Section */}
           {user && (
             <div className="p-4 border-b border-gray-200">
-              <div className="flex items-center space-x-3">
+              <Link 
+                to="/profile" 
+                onClick={closeSidebar}
+                className="flex items-center space-x-3 hover:bg-gray-50 rounded-lg p-2 transition-colors cursor-pointer"
+              >
                 <AvatarDisplay
                   avatar={user.avatar}
                   userInitials={`${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`}
@@ -274,7 +261,7 @@ const Sidebar = () => {
                     {user.role}
                   </p>
                 </div>
-              </div>
+              </Link>
             </div>
           )}
 
@@ -346,28 +333,6 @@ const Sidebar = () => {
                         Profile
                       </Link>
                     )}
-                    {user?.role === "admin" && (
-                      <Link
-                        to="/admin/dashboard"
-                        className="flex items-center px-6 py-2 text-sm rounded-lg transition-colors text-gray-600 hover:bg-gray-100 hover:text-blue-600"
-                        onClick={closeSidebar}
-                      >
-                        <svg
-                          className="h-5 w-5 mr-3"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                          />
-                        </svg>
-                        Admin Dashboard
-                      </Link>
-                    )}
                     <Link
                       to="/authors"
                       className="flex items-center px-6 py-2 text-sm rounded-lg transition-colors text-gray-600 hover:bg-gray-100 hover:text-blue-600"
@@ -432,6 +397,184 @@ const Sidebar = () => {
                   </div>
                 )}
               </div>
+
+              {/* Admin Menu Dropdown - Admin Only */}
+              {user?.role === "admin" && (
+                <div className="pt-4">
+                  <button
+                    onClick={() => setIsAdminMenuOpen(!isAdminMenuOpen)}
+                    className="w-full flex items-center justify-between px-4 py-2 text-xs font-semibold uppercase tracking-wider rounded-lg transition-colors text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                  >
+                    <span>Admin Menu</span>
+                    <svg
+                      className={`w-4 h-4 transition-transform ${isAdminMenuOpen ? 'rotate-180' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </button>
+                  {isAdminMenuOpen && (
+                    <div className="mt-2 space-y-1">
+                      <Link
+                        to="/admin/dashboard"
+                        className="flex items-center px-6 py-2 text-sm rounded-lg transition-colors text-gray-600 hover:bg-gray-100 hover:text-blue-600"
+                        onClick={closeSidebar}
+                      >
+                        <svg
+                          className="h-5 w-5 mr-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                          />
+                        </svg>
+                        Admin Dashboard
+                      </Link>
+                      <Link
+                        to="/admin/articles"
+                        className="flex items-center px-6 py-2 text-sm rounded-lg transition-colors text-gray-600 hover:bg-gray-100 hover:text-blue-600"
+                        onClick={closeSidebar}
+                      >
+                        <svg
+                          className="h-5 w-5 mr-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                          />
+                        </svg>
+                        Manage Articles
+                      </Link>
+                      <Link
+                        to="/admin/users"
+                        className="flex items-center px-6 py-2 text-sm rounded-lg transition-colors text-gray-600 hover:bg-gray-100 hover:text-blue-600"
+                        onClick={closeSidebar}
+                      >
+                        <svg
+                          className="h-5 w-5 mr-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+                          />
+                        </svg>
+                        Manage Users
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Quick Actions - Author Only */}
+              {user?.role === "author" || user?.role === "admin" && (
+                <div className="pt-4">
+                  <button
+                    onClick={() => setIsQuickActionsOpen(!isQuickActionsOpen)}
+                    className="w-full flex items-center justify-between px-4 py-2 text-xs font-semibold uppercase tracking-wider rounded-lg transition-colors text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                  >
+                    <span>Quick Actions</span>
+                    <svg
+                      className={`w-4 h-4 transition-transform ${isQuickActionsOpen ? 'rotate-180' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </button>
+                  {isQuickActionsOpen && (
+                    <div className="mt-2 space-y-1">
+                      <Link
+                        to="/author/articles/create"
+                        className="flex items-center px-6 py-2 text-sm rounded-lg transition-colors text-gray-600 hover:bg-gray-100 hover:text-blue-600"
+                        onClick={closeSidebar}
+                      >
+                        <svg
+                          className="h-5 w-5 mr-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 4v16m8-8H4"
+                          />
+                        </svg>
+                        Create Article
+                      </Link>
+                      <Link
+                        to="/author/articles"
+                        className="flex items-center px-6 py-2 text-sm rounded-lg transition-colors text-gray-600 hover:bg-gray-100 hover:text-blue-600"
+                        onClick={closeSidebar}
+                      >
+                        <svg
+                          className="h-5 w-5 mr-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                          />
+                        </svg>
+                        Manage Articles
+                      </Link>
+                      <Link
+                        to="/author/dashboard"
+                        className="flex items-center px-6 py-2 text-sm rounded-lg transition-colors text-gray-600 hover:bg-gray-100 hover:text-blue-600"
+                        onClick={closeSidebar}
+                      >
+                        <svg
+                          className="h-5 w-5 mr-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                          />
+                        </svg>
+                        Dashboard
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Categories Section */}
               <div className="pt-4">
